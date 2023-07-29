@@ -1,3 +1,4 @@
 .idea
 week*
 .DS_Store
+node_modules
