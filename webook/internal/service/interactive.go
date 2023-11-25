@@ -57,7 +57,7 @@ func (i *interactiveService) Get(ctx context.Context,
 	})
 	eg.Go(func() error {
 		var err error
-		liked, err = i.repo.Collected(ctx, biz, bizId, uid)
+		collected, err = i.repo.Collected(ctx, biz, bizId, uid)
 		return err
 	})
 	err := eg.Wait()
