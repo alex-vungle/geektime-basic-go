@@ -86,7 +86,7 @@ func TestArticleHandler_Publish(t *testing.T) {
 			defer ctrl.Finish()
 			server := gin.Default()
 			server.Use(func(ctx *gin.Context) {
-				ctx.Set("claims", &ijwt.UserClaims{
+				ctx.Set("users", &ijwt.UserClaims{
 					Id: 123,
 				})
 			})

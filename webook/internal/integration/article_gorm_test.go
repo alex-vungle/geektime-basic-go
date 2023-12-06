@@ -28,7 +28,7 @@ func (s *ArticleGORMHandlerTestSuite) SetupSuite() {
 	s.server = gin.Default()
 	s.server.Use(func(context *gin.Context) {
 		// 直接设置好
-		context.Set("claims", &ijwt.UserClaims{
+		context.Set("users", &ijwt.UserClaims{
 			Id: 123,
 		})
 		context.Next()

@@ -2,8 +2,7 @@ package web
 
 import (
 	"fmt"
-	domain2 "gitee.com/geekbang/basic-go/webook/interactive/domain"
-	service2 "gitee.com/geekbang/basic-go/webook/interactive/service"
+	intrv1 "gitee.com/geekbang/basic-go/webook/api/proto/gen/intr/v1"
 	"gitee.com/geekbang/basic-go/webook/internal/domain"
 	"gitee.com/geekbang/basic-go/webook/internal/service"
 	ijwt "gitee.com/geekbang/basic-go/webook/internal/web/jwt"
@@ -22,16 +21,18 @@ var _ handler = (*ArticleHandler)(nil)
 type ArticleHandler struct {
 	svc     service.ArticleService
 	l       logger.LoggerV1
-	intrSvc service2.InteractiveService
+	intrSvc intrv1.InteractiveServiceClient
 	biz     string
 }
 
 func NewArticleHandler(svc service.ArticleService,
+	intrSvc intrv1.InteractiveServiceClient,
 	l logger.LoggerV1) *ArticleHandler {
 	return &ArticleHandler{
-		svc: svc,
-		l:   l,
-		biz: "article",
+		svc:     svc,
+		l:       l,
+		biz:     "article",
+		intrSvc: intrSvc,
 	}
 }
 
@@ -93,9 +94,13 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 func (a *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc ijwt.UserClaims) (ginx.Result, error) {
 	var err error
 	if req.Like {
-		err = a.intrSvc.Like(ctx, a.biz, req.Id, uc.Id)
+		_, err = a.intrSvc.Like(ctx, &intrv1.LikeRequest{
+			Biz: a.biz, BizId: req.Id, Uid: uc.Id,
+		})
 	} else {
-		err = a.intrSvc.CancelLike(ctx, a.biz, req.Id, uc.Id)
+		_, err = a.intrSvc.CancelLike(ctx, &intrv1.CancelLikeRequest{
+			Biz: a.biz, BizId: req.Id, Uid: uc.Id,
+		})
 	}
 
 	if err != nil {
@@ -127,10 +132,12 @@ func (a *ArticleHandler) PubDetail(ctx *gin.Context) {
 		return err
 	})
 
-	var intr domain2.Interactive
+	var getResp *intrv1.GetResponse
 	eg.Go(func() error {
 		// 这个地方可以容忍错误
-		intr, err = a.intrSvc.Get(ctx, a.biz, id, uc.Id)
+		getResp, err = a.intrSvc.Get(ctx, &intrv1.GetRequest{
+			Biz: a.biz, BizId: id, Uid: uc.Id,
+		})
 		// 这种是容错的写法
 		//if err != nil {
 		//	// 记录日志
@@ -154,7 +161,9 @@ func (a *ArticleHandler) PubDetail(ctx *gin.Context) {
 	go func() {
 		// 你都异步了，怎么还说有巨大的压力呢？
 		// 开一个 goroutine，异步去执行
-		er := a.intrSvc.IncrReadCnt(ctx, a.biz, art.Id)
+		_, er := a.intrSvc.IncrReadCnt(ctx, &intrv1.IncrReadCntRequest{
+			Biz: a.biz, BizId: art.Id,
+		})
 		if er != nil {
 			a.l.Error("增加阅读计数失败",
 				logger.Int64("aid", art.Id),
@@ -163,6 +172,7 @@ func (a *ArticleHandler) PubDetail(ctx *gin.Context) {
 	}()
 
 	// ctx.Set("art", art)
+	intr := getResp.Intr
 
 	// 这个功能是不是可以让前端，主动发一个 HTTP 请求，来增加一个计数？
 	ctx.JSON(http.StatusOK, Result{
@@ -237,8 +247,8 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 	if err := ctx.Bind(&req); err != nil {
 		return
 	}
-	c := ctx.MustGet("claims")
-	claims, ok := c.(*ijwt.UserClaims)
+	c := ctx.MustGet("users")
+	claims, ok := c.(ijwt.UserClaims)
 	if !ok {
 		// 你可以考虑监控住这里
 		//ctx.AbortWithStatus(http.StatusUnauthorized)
@@ -273,8 +283,8 @@ func (h *ArticleHandler) Withdraw(ctx *gin.Context) {
 	if err := ctx.Bind(&req); err != nil {
 		return
 	}
-	c := ctx.MustGet("claims")
-	claims, ok := c.(*ijwt.UserClaims)
+	c := ctx.MustGet("users")
+	claims, ok := c.(ijwt.UserClaims)
 	if !ok {
 		// 你可以考虑监控住这里
 		//ctx.AbortWithStatus(http.StatusUnauthorized)
@@ -313,8 +323,8 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 	if err := ctx.Bind(&req); err != nil {
 		return
 	}
-	c := ctx.MustGet("claims")
-	claims, ok := c.(*ijwt.UserClaims)
+	c := ctx.MustGet("users")
+	claims, ok := c.(ijwt.UserClaims)
 	if !ok {
 		// 你可以考虑监控住这里
 		//ctx.AbortWithStatus(http.StatusUnauthorized)

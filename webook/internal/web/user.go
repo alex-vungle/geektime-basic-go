@@ -378,7 +378,7 @@ func (u *UserHandler) Edit(ctx *gin.Context) {
 }
 
 func (u *UserHandler) ProfileJWT(ctx *gin.Context) {
-	c, _ := ctx.Get("claims")
+	c, _ := ctx.Get("users")
 	// 你可以断定，必然有 claims
 	//if !ok {
 	//	// 你可以考虑监控住这里
@@ -386,7 +386,7 @@ func (u *UserHandler) ProfileJWT(ctx *gin.Context) {
 	//	return
 	//}
 	// ok 代表是不是 *UserClaims
-	claims, ok := c.(*ijwt.UserClaims)
+	claims, ok := c.(ijwt.UserClaims)
 	if !ok {
 		// 你可以考虑监控住这里
 		ctx.String(http.StatusOK, "系统错误")

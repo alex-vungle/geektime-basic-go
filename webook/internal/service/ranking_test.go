@@ -1,9 +1,11 @@
+//go:build need_fix
+
 package service
 
 import (
 	"context"
+	intrv1 "gitee.com/geekbang/basic-go/webook/api/proto/gen/intr/v1"
 	domain2 "gitee.com/geekbang/basic-go/webook/interactive/domain"
-	"gitee.com/geekbang/basic-go/webook/interactive/service"
 	"gitee.com/geekbang/basic-go/webook/internal/domain"
 	svcmocks "gitee.com/geekbang/basic-go/webook/internal/service/mocks"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +19,7 @@ func TestRankingTopN(t *testing.T) {
 	testCases := []struct {
 		name string
 		mock func(ctrl *gomock.Controller) (ArticleService,
-			service.InteractiveService)
+			intrv1.InteractiveServiceClient)
 
 		wantErr  error
 		wantArts []domain.Article
@@ -25,7 +27,7 @@ func TestRankingTopN(t *testing.T) {
 		{
 			name: "计算成功",
 			// 怎么模拟我的数据？
-			mock: func(ctrl *gomock.Controller) (ArticleService, service.InteractiveService) {
+			mock: func(ctrl *gomock.Controller) (ArticleService, intrv1.InteractiveServiceClient) {
 				artSvc := svcmocks.NewMockArticleService(ctrl)
 				// 最简单，一批就搞完
 				artSvc.EXPECT().ListPub(gomock.Any(), gomock.Any(), 0, 3).

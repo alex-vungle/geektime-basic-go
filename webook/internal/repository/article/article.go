@@ -265,9 +265,14 @@ func (c *CachedArticleRepository) preCache(ctx context.Context, data []domain.Ar
 	}
 }
 
-func NewArticleRepository(dao dao.ArticleDAO, l logger.LoggerV1) ArticleRepository {
+func NewArticleRepository(dao dao.ArticleDAO,
+	c cache.ArticleCache,
+	userRepo repository.UserRepository,
+	l logger.LoggerV1) ArticleRepository {
 	return &CachedArticleRepository{
-		dao: dao,
-		l:   l,
+		dao:      dao,
+		cache:    c,
+		l:        l,
+		userRepo: userRepo,
 	}
 }

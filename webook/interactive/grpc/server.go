@@ -5,6 +5,7 @@ import (
 	"gitee.com/geekbang/basic-go/webook/api/proto/gen/intr/v1"
 	domain2 "gitee.com/geekbang/basic-go/webook/interactive/domain"
 	"gitee.com/geekbang/basic-go/webook/interactive/service"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -15,6 +16,14 @@ type InteractiveServiceServer struct {
 	intrv1.UnimplementedInteractiveServiceServer
 	// 注意，核心业务逻辑一定是在 service 里面的
 	svc service.InteractiveService
+}
+
+func NewInteractiveServiceServer(svc service.InteractiveService) *InteractiveServiceServer {
+	return &InteractiveServiceServer{svc: svc}
+}
+
+func (i *InteractiveServiceServer) Register(server *grpc.Server) {
+	intrv1.RegisterInteractiveServiceServer(server, i)
 }
 
 func (i *InteractiveServiceServer) IncrReadCnt(ctx context.Context, request *intrv1.IncrReadCntRequest) (*intrv1.IncrReadCntResponse, error) {
