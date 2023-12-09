@@ -3,6 +3,10 @@
 package startup
 
 import (
+	repository2 "gitee.com/geekbang/basic-go/webook/interactive/repository"
+	cache2 "gitee.com/geekbang/basic-go/webook/interactive/repository/cache"
+	dao2 "gitee.com/geekbang/basic-go/webook/interactive/repository/dao"
+	service2 "gitee.com/geekbang/basic-go/webook/interactive/service"
 	article3 "gitee.com/geekbang/basic-go/webook/internal/events/article"
 	"gitee.com/geekbang/basic-go/webook/internal/repository"
 	article2 "gitee.com/geekbang/basic-go/webook/internal/repository/article"
@@ -26,8 +30,17 @@ var userSvcProvider = wire.NewSet(
 	cache.NewUserCache,
 	repository.NewUserRepository,
 	service.NewUserService)
+
+var interactiveSvcProvider = wire.NewSet(
+	service2.NewInteractiveService,
+	repository2.NewCachedInteractiveRepository,
+	dao2.NewGORMInteractiveDAO,
+	cache2.NewRedisInteractiveCache,
+)
+
 var articlSvcProvider = wire.NewSet(
 	article.NewGORMArticleDAO,
+	cache.NewRedisArticleCache,
 	article2.NewArticleRepository,
 	service.NewArticleService)
 
@@ -36,7 +49,8 @@ func InitWebServer() *gin.Engine {
 		thirdProvider,
 		userSvcProvider,
 		articlSvcProvider,
-
+		interactiveSvcProvider,
+		ioc.InitIntrGRPCClient,
 		article3.NewKafkaProducer,
 		cache.NewCodeCache,
 		repository.NewCodeRepository,
@@ -65,8 +79,10 @@ func InitWebServer() *gin.Engine {
 
 func InitArticleHandler(dao article.ArticleDAO) *web.ArticleHandler {
 	wire.Build(thirdProvider,
-		//userSvcProvider,
-		//cache.NewRedisArticleCache,
+		userSvcProvider,
+		interactiveSvcProvider,
+		cache.NewRedisArticleCache,
+		ioc.InitIntrGRPCClient,
 		//wire.InterfaceValue(new(article.ArticleDAO), dao),
 		article3.NewKafkaProducer,
 		article2.NewArticleRepository,

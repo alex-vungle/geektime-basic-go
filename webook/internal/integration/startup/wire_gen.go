@@ -7,6 +7,10 @@
 package startup
 
 import (
+	repository2 "gitee.com/geekbang/basic-go/webook/interactive/repository"
+	cache2 "gitee.com/geekbang/basic-go/webook/interactive/repository/cache"
+	dao2 "gitee.com/geekbang/basic-go/webook/interactive/repository/dao"
+	service2 "gitee.com/geekbang/basic-go/webook/interactive/service"
 	article3 "gitee.com/geekbang/basic-go/webook/internal/events/article"
 	"gitee.com/geekbang/basic-go/webook/internal/repository"
 	article2 "gitee.com/geekbang/basic-go/webook/internal/repository/article"
@@ -41,24 +45,41 @@ func InitWebServer() *gin.Engine {
 	wechatService := InitPhantomWechatService(loggerV1)
 	oAuth2WechatHandler := web.NewOAuth2WechatHandler(wechatService, userService, handler)
 	articleDAO := article.NewGORMArticleDAO(gormDB)
-	articleRepository := article2.NewArticleRepository(articleDAO, loggerV1)
+	articleCache := cache.NewRedisArticleCache(cmdable)
+	articleRepository := article2.NewArticleRepository(articleDAO, articleCache, userRepository, loggerV1)
 	client := InitKafka()
 	syncProducer := NewSyncProducer(client)
 	producer := article3.NewKafkaProducer(syncProducer)
 	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
-	articleHandler := web.NewArticleHandler(articleService, loggerV1)
+	interactiveDAO := dao2.NewGORMInteractiveDAO(gormDB)
+	interactiveCache := cache2.NewRedisInteractiveCache(cmdable)
+	interactiveRepository := repository2.NewCachedInteractiveRepository(interactiveDAO, interactiveCache, loggerV1)
+	interactiveService := service2.NewInteractiveService(interactiveRepository, loggerV1)
+	interactiveServiceClient := ioc.InitIntrGRPCClient(interactiveService)
+	articleHandler := web.NewArticleHandler(articleService, interactiveServiceClient, loggerV1)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
 	return engine
 }
 
-func InitArticleHandler(dao2 article.ArticleDAO) *web.ArticleHandler {
+func InitArticleHandler(dao3 article.ArticleDAO) *web.ArticleHandler {
+	cmdable := InitRedis()
+	articleCache := cache.NewRedisArticleCache(cmdable)
+	gormDB := InitTestDB()
+	userDAO := dao.NewUserDAO(gormDB)
+	userCache := cache.NewUserCache(cmdable)
+	userRepository := repository.NewUserRepository(userDAO, userCache)
 	loggerV1 := InitLog()
-	articleRepository := article2.NewArticleRepository(dao2, loggerV1)
+	articleRepository := article2.NewArticleRepository(dao3, articleCache, userRepository, loggerV1)
 	client := InitKafka()
 	syncProducer := NewSyncProducer(client)
 	producer := article3.NewKafkaProducer(syncProducer)
 	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
-	articleHandler := web.NewArticleHandler(articleService, loggerV1)
+	interactiveDAO := dao2.NewGORMInteractiveDAO(gormDB)
+	interactiveCache := cache2.NewRedisInteractiveCache(cmdable)
+	interactiveRepository := repository2.NewCachedInteractiveRepository(interactiveDAO, interactiveCache, loggerV1)
+	interactiveService := service2.NewInteractiveService(interactiveRepository, loggerV1)
+	interactiveServiceClient := ioc.InitIntrGRPCClient(interactiveService)
+	articleHandler := web.NewArticleHandler(articleService, interactiveServiceClient, loggerV1)
 	return articleHandler
 }
 
@@ -88,4 +109,6 @@ var thirdProvider = wire.NewSet(InitRedis,
 
 var userSvcProvider = wire.NewSet(dao.NewUserDAO, cache.NewUserCache, repository.NewUserRepository, service.NewUserService)
 
-var articlSvcProvider = wire.NewSet(article.NewGORMArticleDAO, article2.NewArticleRepository, service.NewArticleService)
+var interactiveSvcProvider = wire.NewSet(service2.NewInteractiveService, repository2.NewCachedInteractiveRepository, dao2.NewGORMInteractiveDAO, cache2.NewRedisInteractiveCache)
+
+var articlSvcProvider = wire.NewSet(article.NewGORMArticleDAO, cache.NewRedisArticleCache, article2.NewArticleRepository, service.NewArticleService)
