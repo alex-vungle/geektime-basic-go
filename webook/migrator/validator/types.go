@@ -7,6 +7,7 @@ import (
 	"gitee.com/geekbang/basic-go/webook/pkg/logger"
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/ecodeclub/ekit/syncx/atomicx"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"time"
 )
@@ -44,9 +45,18 @@ func NewValidator[T migrator.Entity](base *gorm.DB, target *gorm.DB, l logger.Lo
 		highLoad: highLoad}
 }
 
-func (v *Validator[T]) Validate(ctx context.Context) {
-	v.validateBaseToTarget(ctx)
-	v.validateTargetToBase(ctx)
+func (v *Validator[T]) Validate(ctx context.Context) error {
+	var eg errgroup.Group
+	eg.Go(func() error {
+		v.validateBaseToTarget(ctx)
+		return nil
+	})
+
+	eg.Go(func() error {
+		v.validateTargetToBase(ctx)
+		return nil
+	})
+	return eg.Wait()
 }
 
 // Validate 调用者可以通过 ctx 来控制校验程序退出
@@ -68,6 +78,7 @@ func (v *Validator[T]) validateBaseToTarget(ctx context.Context) {
 		// 例如 .Order("id DESC")，每次插入数据，就会导致你的 offset 不准了
 		// 如果我的表没有 id 这个列怎么办？
 		// 找一个类似的列，比如说 ctime (创建时间）
+		// 作业。你改成批量，性能要好很多
 		err := v.base.WithContext(dbCtx).Offset(offset).
 			Order("id").First(&src).Error
 		cancel()
