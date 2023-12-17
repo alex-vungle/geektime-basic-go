@@ -1,13 +1,5 @@
 package events
 
-import (
-	"context"
-)
-
-type Producer interface {
-	ProduceInconsistentEvent(ctx context.Context, evt InconsistentEvent) error
-}
-
 type InconsistentEvent struct {
 	ID int64
 	// 用什么来修，取值为 SRC，意味着，以源表为准，取值为 DST，以目标表为准

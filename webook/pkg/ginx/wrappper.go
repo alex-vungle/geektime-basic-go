@@ -24,6 +24,22 @@ func InitCounter(opt prometheus.CounterOpts) {
 	// 你可以考虑使用 code, method, 命中路由，HTTP 状态码
 }
 
+func Wrap(fn func(ctx *gin.Context) (Result, error)) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		res, err := fn(ctx)
+		if err != nil {
+			// 开始处理 error，其实就是记录一下日志
+			L.Error("处理业务逻辑出错",
+				logger.String("path", ctx.Request.URL.Path),
+				// 命中的路由
+				logger.String("route", ctx.FullPath()),
+				logger.Error(err))
+		}
+		vector.WithLabelValues(strconv.Itoa(res.Code)).Inc()
+		ctx.JSON(http.StatusOK, res)
+	}
+}
+
 func WrapToken[C jwt.Claims](fn func(ctx *gin.Context, uc C) (Result, error)) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// 执行一些东西

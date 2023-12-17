@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gitee.com/geekbang/basic-go/webook/pkg/ginx"
 	"gitee.com/geekbang/basic-go/webook/pkg/grpcx"
 	"gitee.com/geekbang/basic-go/webook/pkg/saramax"
 )
@@ -10,4 +11,5 @@ type App struct {
 	// 核心就是为了控制生命周期
 	server    *grpcx.Server
 	consumers []saramax.Consumer
+	webAdmin  *ginx.Server
 }

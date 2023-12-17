@@ -1,3 +1,5 @@
+//go:build live
+
 package fixer
 
 import (
@@ -9,6 +11,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// 这个是课堂演示
 type Fixer[T migrator.Entity] struct {
 	base    *gorm.DB
 	target  *gorm.DB

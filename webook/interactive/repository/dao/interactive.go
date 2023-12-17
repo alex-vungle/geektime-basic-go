@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"gitee.com/geekbang/basic-go/webook/pkg/migrator"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -201,6 +202,15 @@ type Interactive struct {
 	LikeCnt int64
 	Ctime   int64
 	Utime   int64
+}
+
+func (i Interactive) ID() int64 {
+	return i.Id
+}
+
+func (i Interactive) CompareTo(dst migrator.Entity) bool {
+	dstVal, ok := dst.(Interactive)
+	return ok && i == dstVal
 }
 
 // UserLikeBiz 命名无能，用户点赞的某个东西
