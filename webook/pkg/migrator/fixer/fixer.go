@@ -5,8 +5,8 @@ package fixer
 import (
 	"context"
 	"errors"
-	"gitee.com/geekbang/basic-go/webook/migrator"
-	"gitee.com/geekbang/basic-go/webook/migrator/events"
+	"gitee.com/geekbang/basic-go/webook/pkg/migrator"
+	"gitee.com/geekbang/basic-go/webook/pkg/migrator/events"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

@@ -11,6 +11,7 @@ function Page(){
     const [isLoading, setLoading] = useState(false)
     const params = useSearchParams()
     const artID = params?.get("id")!
+    debugger
     useEffect(() => {
         setLoading(true)
         axios.get('/articles/pub/'+artID)

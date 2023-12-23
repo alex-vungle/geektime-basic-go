@@ -3,7 +3,6 @@
 package main
 
 import (
-	"gitee.com/geekbang/basic-go/webook/interactive/events"
 	repository2 "gitee.com/geekbang/basic-go/webook/interactive/repository"
 	cache2 "gitee.com/geekbang/basic-go/webook/interactive/repository/cache"
 	dao2 "gitee.com/geekbang/basic-go/webook/interactive/repository/dao"
@@ -44,14 +43,18 @@ func InitWebServer() *App {
 		ioc.NewConsumers,
 		ioc.NewSyncProducer,
 
-		interactiveSvcProvider,
-		ioc.InitIntrGRPCClient,
+		// 流量控制用的
+		//interactiveSvcProvider,
+		//ioc.InitIntrGRPCClient,
+
+		// 放一起，启用了 etcd 作为配置中心
+		ioc.InitEtcd,
+		ioc.InitIntrGRPCClientV1,
 		rankingServiceSet,
 		ioc.InitJobs,
 		ioc.InitRankingJob,
 
 		// consumer
-		events.NewInteractiveReadEventBatchConsumer,
 		article.NewKafkaProducer,
 
 		// 初始化 DAO

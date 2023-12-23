@@ -12,7 +12,7 @@ import (
 
 func TestClient(t *testing.T) {
 	// cc 是一个连接池的池子，就是 cc 里面放了很多个连接池，一个 IP+端口 一个连接池
-	cc, err := grpc.Dial(":8090",
+	cc, err := grpc.Dial("localhost:8090",
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	client := NewUserServiceClient(cc)

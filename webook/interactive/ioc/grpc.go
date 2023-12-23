@@ -3,13 +3,17 @@ package ioc
 import (
 	grpc2 "gitee.com/geekbang/basic-go/webook/interactive/grpc"
 	"gitee.com/geekbang/basic-go/webook/pkg/grpcx"
+	"gitee.com/geekbang/basic-go/webook/pkg/logger"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
-func InitGRPCxServer(intrServer *grpc2.InteractiveServiceServer) *grpcx.Server {
+func InitGRPCxServer(
+	l logger.LoggerV1,
+	intrServer *grpc2.InteractiveServiceServer) *grpcx.Server {
 	type Config struct {
-		Addr string `yaml:"addr"`
+		Port      int      `yaml:"port"`
+		EtcdAddrs []string `yaml:"etcdAddrs"`
 	}
 
 	var cfg Config
@@ -24,7 +28,10 @@ func InitGRPCxServer(intrServer *grpc2.InteractiveServiceServer) *grpcx.Server {
 	intrServer.Register(server)
 
 	return &grpcx.Server{
-		Server: server,
-		Addr:   cfg.Addr,
+		Server:    server,
+		Port:      cfg.Port,
+		EtcdAddrs: cfg.EtcdAddrs,
+		Name:      "interactive",
+		L:         l,
 	}
 }

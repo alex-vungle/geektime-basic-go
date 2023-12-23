@@ -18,7 +18,9 @@ kafka:
 
 grpc:
   server:
-    addr: ":8090"
+    port: 8090
+    etcdAddrs:
+      - "localhost:12379"
 #  client:
 #    user:
 #      addr: "user.mycompany.com:8090"

@@ -58,7 +58,7 @@ func (svc *articleService) GetPublishedById(ctx context.Context, id, uid int64) 
 					Uid: uid,
 					Aid: id,
 				})
-			if er == nil {
+			if er != nil {
 				svc.l.Error("发送读者阅读事件失败")
 			}
 		}()
