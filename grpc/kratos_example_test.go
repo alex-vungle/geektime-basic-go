@@ -39,7 +39,7 @@ func (s *KratosTestSuite) TestClient() {
 	client := NewUserServiceClient(cc)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	resp, err := client.GetById(ctx, &GetByIdReq{
+	resp, err := client.GetById(ctx, &GetByIdRequest{
 		Id: 123,
 	})
 	require.NoError(s.T(), err)
