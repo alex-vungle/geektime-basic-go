@@ -34,10 +34,15 @@ func (s *EtcdTestSuite) TestClient() {
 	// URL 的规范 scheme:///xxxxx
 	cc, err := grpc.Dial("etcd:///service/user",
 		grpc.WithResolvers(bd),
+		//grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		//	ctx = context.WithValue(ctx, "req", req)
+		//	return invoker(ctx, method, req, reply, cc)
+		//}),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	client := NewUserServiceClient(cc)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
+	//ctx = context.WithValue(ctx, "balancer-key", 123)
 	resp, err := client.GetById(ctx, &GetByIdRequest{
 		Id: 123,
 	})
@@ -75,6 +80,7 @@ func (s *EtcdTestSuite) TestServer() {
 		Addr: addr,
 		Metadata: map[string]any{
 			"weight": 100,
+			"cpu":    90,
 		},
 	}, etcdv3.WithLease(leaseResp.ID))
 	require.NoError(s.T(), err)
