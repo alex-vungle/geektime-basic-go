@@ -73,6 +73,9 @@ func (s *EtcdTestSuite) TestServer() {
 	defer cancel()
 	err = em.AddEndpoint(ctx, key, endpoints.Endpoint{
 		Addr: addr,
+		Metadata: map[string]any{
+			"weight": 100,
+		},
 	}, etcdv3.WithLease(leaseResp.ID))
 	require.NoError(s.T(), err)
 
@@ -98,7 +101,10 @@ func (s *EtcdTestSuite) TestServer() {
 				Addr: addr,
 				// 你们的分组信息，权重信息，机房信息
 				// 以及动态判定负载的时候，可以把你的负载信息也写到这里
-				Metadata: now.String(),
+				Metadata: map[string]any{
+					"weight": 200,
+					"time":   now.String(),
+				},
 			}, etcdv3.WithLease(leaseResp.ID))
 			if err != nil {
 				s.T().Log(err)
