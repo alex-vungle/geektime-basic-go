@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+func init() {
+
+}
+
 type GoZeroTestSuite struct {
 	suite.Suite
 }
@@ -22,7 +26,10 @@ func (s *GoZeroTestSuite) TestGoZeroClient() {
 			Hosts: []string{"localhost:12379"},
 			Key:   "user",
 		},
-	})
+	},
+	// 强制覆盖，使用我们指定的负载均衡算法
+	//zrpc.WithDialOption(grpc.WithDefaultServiceConfig()),
+	)
 	client := NewUserServiceClient(zClient.Conn())
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

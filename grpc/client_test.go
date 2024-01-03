@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -9,6 +10,10 @@ import (
 	"testing"
 	"time"
 )
+
+func init() {
+	fmt.Printf("abc")
+}
 
 func TestClient(t *testing.T) {
 	// cc 是一个连接池的池子，就是 cc 里面放了很多个连接池，一个 IP+端口 一个连接池
