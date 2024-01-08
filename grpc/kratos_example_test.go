@@ -5,6 +5,8 @@ import (
 	etcd "github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
+	"github.com/go-kratos/kratos/v2/selector"
+	"github.com/go-kratos/kratos/v2/selector/random"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -27,7 +29,39 @@ func (s *KratosTestSuite) SetupSuite() {
 }
 
 func (s *KratosTestSuite) TestClient() {
+	// 默认是 WRR 负载均衡算法
+	r := etcd.New(s.etcdClient)
+	cc, err := grpc.DialInsecure(context.Background(),
+		grpc.WithEndpoint("discovery:///user"),
+		grpc.WithDiscovery(r),
+		//grpc.WithNodeFilter(func(ctx context.Context, nodes []selector.Node) []selector.Node {
+		//	// 你可以在这里过滤一些东西
+		//	res := make([]selector.Node, 0, len(nodes))
+		//	for _, n := range nodes {
+		//		if n.Metadata()["vip"] == "true" {
+		//			res = append(res, n)
+		//		}
+		//	}
+		//	return res
+		//}),
+	)
+	require.NoError(s.T(), err)
+	defer cc.Close()
 
+	client := NewUserServiceClient(cc)
+	for i := 0; i < 10; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		resp, err := client.GetByID(ctx, &GetByIDRequest{
+			Id: 123,
+		})
+		cancel()
+		require.NoError(s.T(), err)
+		s.T().Log(resp.User)
+	}
+}
+
+func (s *KratosTestSuite) TestClientLoadBalancer() {
+	selector.SetGlobalSelector(random.NewBuilder())
 	r := etcd.New(s.etcdClient)
 	cc, err := grpc.DialInsecure(context.Background(),
 		grpc.WithEndpoint("discovery:///user"),
@@ -37,22 +71,33 @@ func (s *KratosTestSuite) TestClient() {
 	defer cc.Close()
 
 	client := NewUserServiceClient(cc)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	resp, err := client.GetByID(ctx, &GetByIDRequest{
-		Id: 123,
-	})
-	require.NoError(s.T(), err)
-	s.T().Log(resp.User)
+	for i := 0; i < 10; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		resp, err := client.GetByID(ctx, &GetByIDRequest{
+			Id: 123,
+		})
+		cancel()
+		require.NoError(s.T(), err)
+		s.T().Log(resp.User)
+	}
 }
 
 // TestServer 启动服务器
 func (s *KratosTestSuite) TestServer() {
+	go func() {
+		s.startServer(":8090")
+	}()
+	s.startServer(":8091")
+}
+
+func (s *KratosTestSuite) startServer(addr string) {
 	grpcSrv := grpc.NewServer(
-		grpc.Address(":8090"),
+		grpc.Address(addr),
 		grpc.Middleware(recovery.Recovery()),
 	)
-	RegisterUserServiceServer(grpcSrv, &Server{})
+	RegisterUserServiceServer(grpcSrv, &Server{
+		Name: addr,
+	})
 	// etcd 注册中心
 	r := etcd.New(s.etcdClient)
 	app := kratos.New(
