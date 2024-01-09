@@ -94,6 +94,14 @@ func (b *BatchRankingService) topN(ctx context.Context) ([]domain.Article, error
 			return art.Id
 		})
 		// 取点赞数
+		// 2014.1.9 答疑
+		// 直接用 Get 就是遍历
+		// 普遍来说，性能差
+		for _, id := range ids {
+			b.intrSvc.Get(ctx, &intrv1.GetRequest{
+				Biz: "article", BizId: id,
+			})
+		}
 		intrResp, err := b.intrSvc.GetByIds(ctx, &intrv1.GetByIdsRequest{
 			Biz: "article", Ids: ids,
 		})
