@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"gitee.com/geekbang/basic-go/webook/internal/domain"
 	"gitee.com/geekbang/basic-go/webook/internal/repository/cache"
 	"gitee.com/geekbang/basic-go/webook/internal/repository/dao"
@@ -76,6 +77,12 @@ func (r *CachedUserRepository) FindById(ctx context.Context, id int64) (domain.U
 	//if err == cache.ErrKeyNotExist {
 	// 去数据库里面加载
 	//}
+
+	// 尝试去数据库查询
+	if ctx.Value("limited") == "true" {
+		// 不去了
+		return domain.User{}, errors.New("触发限流，缓存未命中，不查询数据库")
+	}
 
 	ue, err := r.dao.FindById(ctx, id)
 	if err != nil {

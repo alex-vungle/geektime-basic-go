@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"github.com/ecodeclub/ekit/queue"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -113,7 +114,7 @@ type TokenBucketLimiter struct {
 	closeCh chan struct{}
 }
 
-// 把 capacity 设置成0，就是漏桶算法
+// NewTokenBucketLimiter 把 capacity 设置成0，就是漏桶算法
 // 但是，代码可以简化
 func NewTokenBucketLimiter(interval time.Duration, capacity int) *TokenBucketLimiter {
 	return &TokenBucketLimiter{
@@ -162,7 +163,44 @@ func (l *TokenBucketLimiter) NewServerInterceptor() grpc.UnaryServerInterceptor 
 	}
 }
 
+// Close 你是不能反复调用
 func (l *TokenBucketLimiter) Close() error {
 	close(l.closeCh)
+	return nil
+}
+
+// LeakyBucket 漏桶算法
+type LeakyBucket struct {
+	// 每隔多久一个令牌
+	interval time.Duration
+
+	closeCh   chan struct{}
+	closeOnce sync.Once
+}
+
+func (l *LeakyBucket) NewServerInterceptor() grpc.UnaryServerInterceptor {
+	ticker := time.NewTicker(l.interval)
+	return func(ctx context.Context, req any,
+		info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		select {
+		case <-ticker.C:
+			// 拿到了令牌
+			return handler(ctx, req)
+			//default:
+		// 就意味着你认为，没有令牌不应阻塞，直接返回
+		//return nil, status.Errorf(codes.ResourceExhausted, "限流了")
+		case <-ctx.Done():
+			// 没有令牌就等令牌，直到超时
+			return nil, ctx.Err()
+		case <-l.closeCh:
+			return nil, errors.New("限流器被关了")
+		}
+	}
+}
+
+func (l *LeakyBucket) Close() error {
+	l.closeOnce.Do(func() {
+		close(l.closeCh)
+	})
 	return nil
 }

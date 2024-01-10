@@ -115,12 +115,18 @@ func (svc *userService) FindOrCreate(ctx context.Context,
 
 func (svc *userService) FindOrCreateByWechat(ctx context.Context,
 	info domain.WechatInfo) (domain.User, error) {
+	// 像这种
 	u, err := svc.repo.FindByWechat(ctx, info.OpenID)
 	if err != repository.ErrUserNotFound {
 		return u, err
 	}
 	u = domain.User{
 		WechatInfo: info,
+	}
+	// 所谓的慢路径
+	// 你是不是可以说，在降级、限流、熔断的时候，就禁止注册
+	if ctx.Value("limited") == "true" {
+		return domain.User{}, errors.New("触发限流，禁用注册")
 	}
 	err = svc.repo.Create(ctx, u)
 	if err != nil && err != repository.ErrUserDuplicate {
