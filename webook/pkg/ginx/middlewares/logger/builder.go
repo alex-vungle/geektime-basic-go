@@ -38,6 +38,10 @@ func (b *MiddlewareBuilder) AllowRespBody() *MiddlewareBuilder {
 
 func (b *MiddlewareBuilder) Build() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// 借助 http header 来传递超时信息
+		//timeout := ctx.GetHeader("x-timeout").(int64)
+		//t := time.UnixMilli(timeout)
+		//reqCtx, cancel := context.WithDeadline(ctx, t)
 		start := time.Now()
 		url := ctx.Request.URL.String()
 		if len(url) > 1024 {

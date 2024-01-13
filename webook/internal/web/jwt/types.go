@@ -26,4 +26,6 @@ type UserClaims struct {
 	Ssid string
 	// 自己随便加
 	UserAgent string
+
+	VIP bool
 }

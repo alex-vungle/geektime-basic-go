@@ -183,6 +183,11 @@ func (s *EtcdTestSuite) startServer(addr string, weight int) {
 		Metadata: map[string]any{
 			"weight": weight,
 			//"cpu":    90,
+			// 服务端启动，从配置文件/环境变量里面读取
+			"labels": []string{"vip", "read_first"},
+			//"region":             "shanghai",
+			//"vip":                true,
+			//"read_write_pattern": "read",
 		},
 	}, etcdv3.WithLease(leaseResp.ID))
 	require.NoError(s.T(), err)

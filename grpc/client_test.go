@@ -25,6 +25,11 @@ func TestClient(t *testing.T) {
 	client := NewUserServiceClient(cc)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
 	defer cancel()
+
+	// 那我怎么知道是 vip？？
+	// shadow, ab test
+	ctx = context.WithValue(ctx, "label", "vip")
+
 	resp, err := client.GetById(ctx, &GetByIdRequest{
 		Id: 456,
 	})
