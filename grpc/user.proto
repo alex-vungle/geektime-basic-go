@@ -41,6 +41,10 @@ service UserService {
   rpc GetByID(GetByIDRequest) returns(GetByIDResponse);
 }
 
+service VipService {
+//  rpc GetByID(VipGetByIDRequest) returns(GetByIDResponse);
+}
+
 message GetByIDRequest {
   int64 id = 1;
 }
