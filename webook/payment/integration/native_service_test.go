@@ -35,7 +35,7 @@ func (s *WechatNativeServiceTestSuite) TearDownTest() {
 
 // 记得配置各个环境变量
 func (s *WechatNativeServiceTestSuite) TestPrepay() {
-	bizNo1 := "integration-1235-p"
+	bizNo1 := "integration-1234-p"
 	testCases := []struct {
 		name    string
 		pmt     domain.Payment

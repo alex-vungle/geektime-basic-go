@@ -10,6 +10,7 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
+	"net/http"
 	"os"
 	"testing"
 )
@@ -41,10 +42,19 @@ func TestNativeService_Prepay(t *testing.T) {
 			Currency: "CNY",
 			Total:    1,
 		},
-		BizTradeNO:  "live_demo_1234",
+		BizTradeNO:  "test_123",
 		Description: "面试官AI",
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, codeUrl)
 	t.Log(codeUrl)
+}
+
+func TestServer(t *testing.T) {
+	http.HandleFunc("/", func(
+		writer http.ResponseWriter,
+		request *http.Request) {
+		writer.Write([]byte("hello, 我进来了"))
+	})
+	http.ListenAndServe(":8080", nil)
 }

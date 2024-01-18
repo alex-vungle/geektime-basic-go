@@ -41,6 +41,7 @@ func (b *BatchHandler[T]) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 			case <-ctx.Done():
 				done = true
 			case msg, ok := <-msgsCh:
+				// 再按照 key 或者业务 ID 转发到不同的 channel
 				if !ok {
 					cancel()
 					// 代表消费者被关闭了

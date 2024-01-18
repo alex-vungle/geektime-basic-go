@@ -16,11 +16,15 @@ func (s *SyncWechatOrderJob) Name() string {
 	return "sync_wechat_order_job"
 }
 
+// Run 怎么调度。你可以考虑。间隔一分钟执行一次
 func (s *SyncWechatOrderJob) Run() error {
 	offset := 0
 	// 也可以做成参数
 	const limit = 100
 	// 三十分钟之前的订单我们就认为已经过期了。
+
+	// 如果你们的产品经理，或者老板要求快速对账
+
 	now := time.Now().Add(-time.Minute * 30)
 	for {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)

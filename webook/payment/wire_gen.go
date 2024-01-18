@@ -7,7 +7,10 @@
 package main
 
 import (
+	"gitee.com/geekbang/basic-go/webook/payment/grpc"
 	"gitee.com/geekbang/basic-go/webook/payment/ioc"
+	"gitee.com/geekbang/basic-go/webook/payment/repository"
+	"gitee.com/geekbang/basic-go/webook/payment/repository/dao"
 	"gitee.com/geekbang/basic-go/webook/payment/web"
 	"gitee.com/geekbang/basic-go/webook/pkg/wego"
 )
@@ -17,11 +20,22 @@ import (
 func InitApp() *wego.App {
 	wechatConfig := ioc.InitWechatConfig()
 	handler := ioc.InitWechatNotifyHandler(wechatConfig)
+	client := ioc.InitWechatClient(wechatConfig)
+	db := ioc.InitDB()
+	paymentDAO := dao.NewPaymentGORMDAO(db)
+	paymentRepository := repository.NewPaymentRepository(paymentDAO)
 	loggerV1 := ioc.InitLogger()
-	wechatHandler := web.NewWechatHandler(handler, loggerV1)
+	saramaClient := ioc.InitKafka()
+	producer := ioc.InitProducer(saramaClient)
+	nativePaymentService := ioc.InitWechatNativeService(client, paymentRepository, loggerV1, producer, wechatConfig)
+	wechatHandler := web.NewWechatHandler(handler, nativePaymentService, loggerV1)
 	server := ioc.InitGinServer(wechatHandler)
+	wechatServiceServer := grpc.NewWechatServiceServer(nativePaymentService)
+	clientv3Client := ioc.InitEtcdClient()
+	grpcxServer := ioc.InitGRPCServer(wechatServiceServer, clientv3Client, loggerV1)
 	app := &wego.App{
-		WebServer: server,
+		WebServer:  server,
+		GRPCServer: grpcxServer,
 	}
 	return app
 }

@@ -2,6 +2,7 @@ package ioc
 
 import (
 	"context"
+	"gitee.com/geekbang/basic-go/webook/payment/events"
 	"gitee.com/geekbang/basic-go/webook/payment/repository"
 	"gitee.com/geekbang/basic-go/webook/payment/service/wechat"
 	"gitee.com/geekbang/basic-go/webook/pkg/logger"
@@ -44,10 +45,11 @@ func InitWechatNativeService(
 	cli *core.Client,
 	repo repository.PaymentRepository,
 	l logger.LoggerV1,
+	producer events.Producer,
 	cfg WechatConfig) *wechat.NativePaymentService {
 	return wechat.NewNativePaymentService(&native.NativeApiService{
 		Client: cli,
-	}, repo, l, cfg.AppID, cfg.MchID)
+	}, repo, producer, l, cfg.AppID, cfg.MchID)
 }
 
 func InitWechatNotifyHandler(cfg WechatConfig) *notify.Handler {

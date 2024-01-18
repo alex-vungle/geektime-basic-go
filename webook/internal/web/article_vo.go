@@ -2,6 +2,11 @@ package web
 
 import "gitee.com/geekbang/basic-go/webook/internal/domain"
 
+type RewardReq struct {
+	Id     int64 `json:"id"`
+	Amount int64 `json:"amount"`
+}
+
 // VO view object，就是对标前端的
 
 type LikeReq struct {

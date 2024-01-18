@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	intrv1 "gitee.com/geekbang/basic-go/webook/api/proto/gen/intr/v1"
+	rewardv1 "gitee.com/geekbang/basic-go/webook/api/proto/gen/reward/v1"
 	"gitee.com/geekbang/basic-go/webook/internal/domain"
 	"gitee.com/geekbang/basic-go/webook/internal/service"
 	ijwt "gitee.com/geekbang/basic-go/webook/internal/web/jwt"
@@ -19,10 +20,11 @@ import (
 var _ handler = (*ArticleHandler)(nil)
 
 type ArticleHandler struct {
-	svc     service.ArticleService
-	l       logger.LoggerV1
-	intrSvc intrv1.InteractiveServiceClient
-	biz     string
+	svc       service.ArticleService
+	l         logger.LoggerV1
+	intrSvc   intrv1.InteractiveServiceClient
+	rewardSvc rewardv1.RewardServiceClient
+	biz       string
 }
 
 func NewArticleHandler(svc service.ArticleService,
@@ -89,6 +91,9 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 		ijwt.UserClaims](h.Like))
 	//pub.POST("/cancel_like", ginx.WrapBodyAndToken[LikeReq,
 	//	ijwt.UserClaims](h.Like))
+	// 在这里定义 打赏接口
+	pub.POST("/reward", ginx.WrapBodyAndToken[RewardReq,
+		ijwt.UserClaims](h.Reward))
 }
 
 func (a *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc ijwt.UserClaims) (ginx.Result, error) {
@@ -379,5 +384,34 @@ func (h *ArticleHandler) List(ctx *gin.Context, req ListReq, uc ijwt.UserClaims)
 					Utime: src.Utime.Format(time.DateTime),
 				}
 			}),
+	}, nil
+}
+
+func (h *ArticleHandler) Reward(ctx *gin.Context, req RewardReq, uc ijwt.UserClaims) (ginx.Result, error) {
+	art, err := h.svc.GetPublishedById(ctx, req.Id, uc.Id)
+	if err != nil {
+		return ginx.Result{}, err
+	}
+	// 我要在这里实现打赏
+	// 拿到一个打赏的二维码
+	// 我不是直接调用支付，而是调用打赏
+	// 打赏什么东西，谁打赏，打赏多少钱？
+	resp, err := h.rewardSvc.PreReward(ctx, &rewardv1.PreRewardRequest{
+		Biz:   "article",
+		BizId: req.Id,
+		Uid:   uc.Id,
+		Amt:   req.Amount,
+		// 创作者是谁？
+		TargetUid: art.Author.Id,
+		// 这个地方用作者呢？还是用标题呢？
+		// 作者写得好
+		BizName: art.Title,
+	})
+	return ginx.Result{
+		Data: map[string]any{
+			"codeURL": resp.CodeUrl,
+			// 代表的是这一次的打赏
+			"rid": resp.Rid,
+		},
 	}, nil
 }

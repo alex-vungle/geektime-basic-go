@@ -3,8 +3,8 @@ package wechat
 import (
 	"context"
 	"errors"
-	"fmt"
 	"gitee.com/geekbang/basic-go/webook/payment/domain"
+	"gitee.com/geekbang/basic-go/webook/payment/events"
 	"gitee.com/geekbang/basic-go/webook/payment/repository"
 	"gitee.com/geekbang/basic-go/webook/pkg/logger"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
@@ -32,6 +32,7 @@ type NativePaymentService struct {
 	// USERPAYING：用户支付中（付款码支付）
 	// PAYERROR：支付失败(其他原因，如银行返回失败)
 	nativeCBTypeToStatus map[string]domain.PaymentStatus
+	producer             events.Producer
 }
 
 func NewNativePaymentService(svc *native.NativeApiService,
@@ -45,14 +46,24 @@ func NewNativePaymentService(svc *native.NativeApiService,
 		appID: appid,
 		mchID: mchid,
 		// 一般来说，这个都是固定的，基本不会变的
+		// 这个从配置文件里面读取
+		// 1. 测试环境 test.wechat.meoying.com
+		// 2. 开发环境 dev.wecaht.meoying.com
+		// 3. 线上环境 wechat.meoying.com
+		// DNS 解析到腾讯云
+		// wechat.tencent_cloud.meoying.com
+		// DNS 解析到阿里云
+		// wechat.ali_cloud.meoying.com
 		notifyURL: "http://wechat.meoying.com/pay/callback",
 		nativeCBTypeToStatus: map[string]domain.PaymentStatus{
 			"SUCCESS":  domain.PaymentStatusSuccess,
 			"PAYERROR": domain.PaymentStatusFailed,
-			"NOTPAY":   domain.PaymentStatusInit,
-			"CLOSED":   domain.PaymentStatusFailed,
-			"REVOKED":  domain.PaymentStatusFailed,
-			"REFUND":   domain.PaymentStatusRefund,
+			// 这个状态，有些人会考虑映射过去 PaymentStatusFailed
+			"NOTPAY":     domain.PaymentStatusInit,
+			"USERPAYING": domain.PaymentStatusInit,
+			"CLOSED":     domain.PaymentStatusFailed,
+			"REVOKED":    domain.PaymentStatusFailed,
+			"REFUND":     domain.PaymentStatusRefund,
 			// 其它状态你都可以加
 		},
 	}
@@ -66,6 +77,7 @@ func (n *NativePaymentService) Prepay(ctx context.Context, pmt domain.Payment) (
 	if err != nil {
 		return "", err
 	}
+	//sn := uuid.New().String()
 	resp, result, err := n.svc.Prepay(ctx, native.PrepayRequest{
 		Appid:       core.String(n.appID),
 		Mchid:       core.String(n.mchID),
@@ -93,7 +105,9 @@ func (n *NativePaymentService) Prepay(ctx context.Context, pmt domain.Payment) (
 	return *resp.CodeUrl, nil
 }
 
-func (n *NativePaymentService) SyncWechatInfo(ctx context.Context, bizTradeNO string) error {
+// SyncWechatInfo 我的兜底，就是我准备同步一下状态
+func (n *NativePaymentService) SyncWechatInfo(ctx context.Context,
+	bizTradeNO string) error {
 	txn, _, err := n.svc.QueryOrderByOutTradeNo(ctx, native.QueryOrderByOutTradeNoRequest{
 		OutTradeNo: core.String(bizTradeNO),
 		Mchid:      core.String(n.mchID),
@@ -108,18 +122,41 @@ func (n *NativePaymentService) FindExpiredPayment(ctx context.Context, offset, l
 	return n.repo.FindExpiredPayment(ctx, offset, limit, t)
 }
 
+func (n *NativePaymentService) GetPayment(ctx context.Context, bizTradeId string) (domain.Payment, error) {
+	// 在这里，我能不能设计一个慢路径？如果要是不知道支付结果，我就去微信里面查一下？
+	// 或者异步查一下？
+	return n.repo.GetPayment(ctx, bizTradeId)
+}
+
 func (n *NativePaymentService) HandleCallback(ctx context.Context, txn *payments.Transaction) error {
 	return n.updateByTxn(ctx, txn)
 }
 
 func (n *NativePaymentService) updateByTxn(ctx context.Context, txn *payments.Transaction) error {
+	// 搞一个 status 映射的 map
 	status, ok := n.nativeCBTypeToStatus[*txn.TradeState]
 	if !ok {
-		return fmt.Errorf("%w, %s", errUnknownTransactionState, *txn.TradeState)
+		// 这个地方，要告警
+		return errors.New("状态映射失败，未知状态的回调")
 	}
-	return n.repo.UpdatePayment(ctx, domain.Payment{
+	// 核心就是更新数据库状态
+	err := n.repo.UpdatePayment(ctx, domain.Payment{
 		BizTradeNO: *txn.OutTradeNo,
-		TxnID:      *txn.TransactionId,
 		Status:     status,
+		TxnID:      *txn.TransactionId,
 	})
+	if err != nil {
+		return err
+	}
+
+	// 发送消息，有结果了总要通知业务方
+	// 这里有很多问题，核心就是部分失败问题，其次还有重复发送问题
+	err1 := n.producer.ProducePaymentEvent(ctx, events.PaymentEvent{
+		BizTradeNO: *txn.OutTradeNo,
+		Status:     status.AsUint8(),
+	})
+	if err1 != nil {
+		// 加监控加告警，立刻手动修复，或者自动补发
+	}
+	return nil
 }
