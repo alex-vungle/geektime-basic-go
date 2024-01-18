@@ -2,3 +2,4 @@
 test.db
 /webook/interactive/integration/data.sql
 webook/.DS_Store
+/webook/payment/config/cert/

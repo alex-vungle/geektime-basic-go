@@ -4,7 +4,7 @@ import (
 	"context"
 	"gitee.com/geekbang/basic-go/webook/interactive/repository"
 	"gitee.com/geekbang/basic-go/webook/pkg/logger"
-	"gitee.com/geekbang/basic-go/webook/pkg/samarax"
+	"gitee.com/geekbang/basic-go/webook/pkg/saramax"
 	"github.com/IBM/sarama"
 	"time"
 )
@@ -46,7 +46,7 @@ func (i *InteractiveReadEventConsumer) Start() error {
 	go func() {
 		er := cg.Consume(context.Background(),
 			[]string{TopicReadEvent},
-			samarax.NewHandler[ReadEvent](i.l, i.Consume))
+			saramax.NewHandler[ReadEvent](i.l, i.Consume))
 		if er != nil {
 			i.l.Error("退出消费", logger.Error(er))
 		}

@@ -7,7 +7,7 @@ import (
 	"gitee.com/geekbang/basic-go/webook/pkg/migrator"
 	"gitee.com/geekbang/basic-go/webook/pkg/migrator/events"
 	"gitee.com/geekbang/basic-go/webook/pkg/migrator/fixer"
-	"gitee.com/geekbang/basic-go/webook/pkg/samarax"
+	"gitee.com/geekbang/basic-go/webook/pkg/saramax"
 	"github.com/IBM/sarama"
 	"gorm.io/gorm"
 	"time"
@@ -54,7 +54,7 @@ func (r *Consumer[T]) Start() error {
 	go func() {
 		err := cg.Consume(context.Background(),
 			[]string{r.topic},
-			samarax.NewHandler[events.InconsistentEvent](r.l, r.Consume))
+			saramax.NewHandler[events.InconsistentEvent](r.l, r.Consume))
 		if err != nil {
 			r.l.Error("退出了消费循环异常", logger.Error(err))
 		}

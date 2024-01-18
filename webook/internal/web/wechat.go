@@ -140,3 +140,25 @@ type StateClaims struct {
 	jwt.RegisteredClaims
 	State string
 }
+
+//func (h *WechatHandler) HandleNative(ctx *gin.Context) {
+//	// 用来接收解密后的数据的
+//	transaction := new(payments.Transaction)
+//	_, err := h.handler.ParseNotifyRequest(ctx, ctx.Request, transaction)
+//	if err != nil {
+//		ctx.String(http.StatusBadRequest, "参数解析失败")
+//		h.l.Error("解析微信支付回调失败", logger.Error(err))
+//		// 在这里， 你可以考虑进一步加监控和告警
+//		// 绝大概率是黑客在尝试攻击你
+//		return
+//	}
+//	err = h.nativeSvc.HandleCallback(ctx, transaction)
+//	if err != nil {
+//		ctx.String(http.StatusInternalServerError, "系统异常")
+//		// 说明你处理回到失败了
+//		h.l.Error("处理微信支付回调失败", logger.Error(err),
+//			logger.String("biz_trade_no", *transaction.OutTradeNo))
+//		return
+//	}
+//	ctx.String(http.StatusOK, "OK")
+//}

@@ -1,0 +1,5 @@
+2023-12-26T21:04:11.300+0800	ERROR	2023.12.26/logger_test.go:14	hello
+gitee.com/geekbang/basic-go/qa/2023%2e12%2e26.TestLoggerFile
+	/Users/mindeng/workspace/go/src/geekbang/basic-go/qa/2023.12.26/logger_test.go:14
+testing.tRunner
+	/Users/mindeng/sdk/go1.21.0/src/testing/testing.go:1595

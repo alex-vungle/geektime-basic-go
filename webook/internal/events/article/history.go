@@ -5,7 +5,7 @@ import (
 	"gitee.com/geekbang/basic-go/webook/internal/domain"
 	"gitee.com/geekbang/basic-go/webook/internal/repository"
 	"gitee.com/geekbang/basic-go/webook/pkg/logger"
-	"gitee.com/geekbang/basic-go/webook/pkg/samarax"
+	"gitee.com/geekbang/basic-go/webook/pkg/saramax"
 	"github.com/IBM/sarama"
 	"time"
 )
@@ -24,7 +24,7 @@ func (i *HistoryRecordConsumer) Start() error {
 	go func() {
 		er := cg.Consume(context.Background(),
 			[]string{TopicReadEvent},
-			samarax.NewHandler[ReadEvent](i.l, i.Consume))
+			saramax.NewHandler[ReadEvent](i.l, i.Consume))
 		if er != nil {
 			i.l.Error("退出消费", logger.Error(er))
 		}
