@@ -6,6 +6,7 @@ package events
 type PaymentEvent struct {
 	BizTradeNO string
 	Status     uint8
+	// Detail
 }
 
 func (PaymentEvent) Topic() string {

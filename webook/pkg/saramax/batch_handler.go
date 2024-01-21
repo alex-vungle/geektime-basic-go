@@ -43,6 +43,7 @@ func (b *BatchHandler[T]) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 					cancel()
 					return nil
 				}
+				// 解决有序性，开 channel，同一个业务发到同一个 channel
 				batch = append(batch, msg)
 				var t T
 				err := json.Unmarshal(msg.Value, &t)
