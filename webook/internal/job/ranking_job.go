@@ -43,6 +43,12 @@ func (r *RankingJob) Name() string {
 
 // go fun() { r.Run()}
 
+// RunV1 2024.1.23 答疑 在这个地方，返回下一次的执行时间，或者说，任务调度框架，
+// 会在我这里返回之后，才开始计时
+//func (r *RankingJob) RunV1() error {
+//	return nil
+//}
+
 func (r *RankingJob) Run() error {
 	r.localLock.Lock()
 	lock := r.lock

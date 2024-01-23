@@ -14,9 +14,22 @@ type Outer1 struct {
 	*Inner
 }
 
+// 如果我调用 Hello 方法，我打印出来的是什么？
+// 1. 如果是多态，打印出来的就是 Hello, outer
+// 2. 组合的情况下，打印出来的还是 Hello, inner
 func (i Outer1) Name() string {
 	return "outer"
 }
+
+// 组合下
+//func (i Outer1) Hello() {
+//	println("hello, 我是", i.Inner.Name())
+//}
+
+// 这么写就能打出 hello, outer
+//func (i Outer1) Hello() {
+//	println("hello, 我是", i.Name())
+//}
 
 type Inner struct {
 }

@@ -76,14 +76,16 @@ func (svc *userService) FindById(ctx context.Context,
 
 func (svc *userService) FindOrCreate(ctx context.Context, phone string) (domain.User, error) {
 	// 先找一下，我们认为，大部分用户是已经存在的用户
+	// 大部分都是老用户
 	u, err := svc.repo.FindByPhone(ctx, phone)
 	if err != repository.ErrUserNotFound {
+		// 直接进来这里
 		// 有两种情况
 		// err == nil, u 是可用的
 		// err != nil，系统错误，
 		return u, err
 	}
-	// 用户没找到
+	// 用户没找到，新用户（罕见），才会进来注册
 	err = svc.repo.Create(ctx, domain.User{
 		Phone: phone,
 	})
