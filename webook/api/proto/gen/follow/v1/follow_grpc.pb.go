@@ -19,20 +19,23 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	FollowService_FollowRelationList_FullMethodName = "/follow.v1.FollowService/FollowRelationList"
-	FollowService_FollowRelationInfo_FullMethodName = "/follow.v1.FollowService/FollowRelationInfo"
-	FollowService_AddFollowRelation_FullMethodName  = "/follow.v1.FollowService/AddFollowRelation"
-	FollowService_EditNote_FullMethodName           = "/follow.v1.FollowService/EditNote"
+	FollowService_Follow_FullMethodName       = "/follow.v1.FollowService/Follow"
+	FollowService_CancelFollow_FullMethodName = "/follow.v1.FollowService/CancelFollow"
+	FollowService_GetFollowee_FullMethodName  = "/follow.v1.FollowService/GetFollowee"
+	FollowService_FollowInfo_FullMethodName   = "/follow.v1.FollowService/FollowInfo"
 )
 
 // FollowServiceClient is the client API for FollowService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FollowServiceClient interface {
-	FollowRelationList(ctx context.Context, in *FollowRelationListRequest, opts ...grpc.CallOption) (*FollowRelationListResponse, error)
-	FollowRelationInfo(ctx context.Context, in *FollowRelationInfoRequest, opts ...grpc.CallOption) (*FollowRelationInfoResponse, error)
-	AddFollowRelation(ctx context.Context, in *AddFollowRelationRequest, opts ...grpc.CallOption) (*AddFollowRelationResponse, error)
-	EditNote(ctx context.Context, in *EditNoteRequest, opts ...grpc.CallOption) (*EditNoteResponse, error)
+	// 增删
+	Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowResponse, error)
+	CancelFollow(ctx context.Context, in *CancelFollowRequest, opts ...grpc.CallOption) (*CancelFollowResponse, error)
+	// 获得某个人的关注列表
+	GetFollowee(ctx context.Context, in *GetFolloweeRequest, opts ...grpc.CallOption) (*GetFolloweeResponse, error)
+	// 获得某个人关注另外一个人的详细信息
+	FollowInfo(ctx context.Context, in *FollowInfoRequest, opts ...grpc.CallOption) (*FollowInfoResponse, error)
 }
 
 type followServiceClient struct {
@@ -43,36 +46,36 @@ func NewFollowServiceClient(cc grpc.ClientConnInterface) FollowServiceClient {
 	return &followServiceClient{cc}
 }
 
-func (c *followServiceClient) FollowRelationList(ctx context.Context, in *FollowRelationListRequest, opts ...grpc.CallOption) (*FollowRelationListResponse, error) {
-	out := new(FollowRelationListResponse)
-	err := c.cc.Invoke(ctx, FollowService_FollowRelationList_FullMethodName, in, out, opts...)
+func (c *followServiceClient) Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowResponse, error) {
+	out := new(FollowResponse)
+	err := c.cc.Invoke(ctx, FollowService_Follow_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *followServiceClient) FollowRelationInfo(ctx context.Context, in *FollowRelationInfoRequest, opts ...grpc.CallOption) (*FollowRelationInfoResponse, error) {
-	out := new(FollowRelationInfoResponse)
-	err := c.cc.Invoke(ctx, FollowService_FollowRelationInfo_FullMethodName, in, out, opts...)
+func (c *followServiceClient) CancelFollow(ctx context.Context, in *CancelFollowRequest, opts ...grpc.CallOption) (*CancelFollowResponse, error) {
+	out := new(CancelFollowResponse)
+	err := c.cc.Invoke(ctx, FollowService_CancelFollow_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *followServiceClient) AddFollowRelation(ctx context.Context, in *AddFollowRelationRequest, opts ...grpc.CallOption) (*AddFollowRelationResponse, error) {
-	out := new(AddFollowRelationResponse)
-	err := c.cc.Invoke(ctx, FollowService_AddFollowRelation_FullMethodName, in, out, opts...)
+func (c *followServiceClient) GetFollowee(ctx context.Context, in *GetFolloweeRequest, opts ...grpc.CallOption) (*GetFolloweeResponse, error) {
+	out := new(GetFolloweeResponse)
+	err := c.cc.Invoke(ctx, FollowService_GetFollowee_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *followServiceClient) EditNote(ctx context.Context, in *EditNoteRequest, opts ...grpc.CallOption) (*EditNoteResponse, error) {
-	out := new(EditNoteResponse)
-	err := c.cc.Invoke(ctx, FollowService_EditNote_FullMethodName, in, out, opts...)
+func (c *followServiceClient) FollowInfo(ctx context.Context, in *FollowInfoRequest, opts ...grpc.CallOption) (*FollowInfoResponse, error) {
+	out := new(FollowInfoResponse)
+	err := c.cc.Invoke(ctx, FollowService_FollowInfo_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,10 +86,13 @@ func (c *followServiceClient) EditNote(ctx context.Context, in *EditNoteRequest,
 // All implementations must embed UnimplementedFollowServiceServer
 // for forward compatibility
 type FollowServiceServer interface {
-	FollowRelationList(context.Context, *FollowRelationListRequest) (*FollowRelationListResponse, error)
-	FollowRelationInfo(context.Context, *FollowRelationInfoRequest) (*FollowRelationInfoResponse, error)
-	AddFollowRelation(context.Context, *AddFollowRelationRequest) (*AddFollowRelationResponse, error)
-	EditNote(context.Context, *EditNoteRequest) (*EditNoteResponse, error)
+	// 增删
+	Follow(context.Context, *FollowRequest) (*FollowResponse, error)
+	CancelFollow(context.Context, *CancelFollowRequest) (*CancelFollowResponse, error)
+	// 获得某个人的关注列表
+	GetFollowee(context.Context, *GetFolloweeRequest) (*GetFolloweeResponse, error)
+	// 获得某个人关注另外一个人的详细信息
+	FollowInfo(context.Context, *FollowInfoRequest) (*FollowInfoResponse, error)
 	mustEmbedUnimplementedFollowServiceServer()
 }
 
@@ -94,17 +100,17 @@ type FollowServiceServer interface {
 type UnimplementedFollowServiceServer struct {
 }
 
-func (UnimplementedFollowServiceServer) FollowRelationList(context.Context, *FollowRelationListRequest) (*FollowRelationListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FollowRelationList not implemented")
+func (UnimplementedFollowServiceServer) Follow(context.Context, *FollowRequest) (*FollowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Follow not implemented")
 }
-func (UnimplementedFollowServiceServer) FollowRelationInfo(context.Context, *FollowRelationInfoRequest) (*FollowRelationInfoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FollowRelationInfo not implemented")
+func (UnimplementedFollowServiceServer) CancelFollow(context.Context, *CancelFollowRequest) (*CancelFollowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelFollow not implemented")
 }
-func (UnimplementedFollowServiceServer) AddFollowRelation(context.Context, *AddFollowRelationRequest) (*AddFollowRelationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddFollowRelation not implemented")
+func (UnimplementedFollowServiceServer) GetFollowee(context.Context, *GetFolloweeRequest) (*GetFolloweeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFollowee not implemented")
 }
-func (UnimplementedFollowServiceServer) EditNote(context.Context, *EditNoteRequest) (*EditNoteResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method EditNote not implemented")
+func (UnimplementedFollowServiceServer) FollowInfo(context.Context, *FollowInfoRequest) (*FollowInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FollowInfo not implemented")
 }
 func (UnimplementedFollowServiceServer) mustEmbedUnimplementedFollowServiceServer() {}
 
@@ -119,74 +125,74 @@ func RegisterFollowServiceServer(s grpc.ServiceRegistrar, srv FollowServiceServe
 	s.RegisterService(&FollowService_ServiceDesc, srv)
 }
 
-func _FollowService_FollowRelationList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FollowRelationListRequest)
+func _FollowService_Follow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FollowServiceServer).FollowRelationList(ctx, in)
+		return srv.(FollowServiceServer).Follow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FollowService_FollowRelationList_FullMethodName,
+		FullMethod: FollowService_Follow_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FollowServiceServer).FollowRelationList(ctx, req.(*FollowRelationListRequest))
+		return srv.(FollowServiceServer).Follow(ctx, req.(*FollowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FollowService_FollowRelationInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FollowRelationInfoRequest)
+func _FollowService_CancelFollow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelFollowRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FollowServiceServer).FollowRelationInfo(ctx, in)
+		return srv.(FollowServiceServer).CancelFollow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FollowService_FollowRelationInfo_FullMethodName,
+		FullMethod: FollowService_CancelFollow_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FollowServiceServer).FollowRelationInfo(ctx, req.(*FollowRelationInfoRequest))
+		return srv.(FollowServiceServer).CancelFollow(ctx, req.(*CancelFollowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FollowService_AddFollowRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddFollowRelationRequest)
+func _FollowService_GetFollowee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFolloweeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FollowServiceServer).AddFollowRelation(ctx, in)
+		return srv.(FollowServiceServer).GetFollowee(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FollowService_AddFollowRelation_FullMethodName,
+		FullMethod: FollowService_GetFollowee_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FollowServiceServer).AddFollowRelation(ctx, req.(*AddFollowRelationRequest))
+		return srv.(FollowServiceServer).GetFollowee(ctx, req.(*GetFolloweeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FollowService_EditNote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EditNoteRequest)
+func _FollowService_FollowInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FollowServiceServer).EditNote(ctx, in)
+		return srv.(FollowServiceServer).FollowInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FollowService_EditNote_FullMethodName,
+		FullMethod: FollowService_FollowInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FollowServiceServer).EditNote(ctx, req.(*EditNoteRequest))
+		return srv.(FollowServiceServer).FollowInfo(ctx, req.(*FollowInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -199,20 +205,20 @@ var FollowService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*FollowServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "FollowRelationList",
-			Handler:    _FollowService_FollowRelationList_Handler,
+			MethodName: "Follow",
+			Handler:    _FollowService_Follow_Handler,
 		},
 		{
-			MethodName: "FollowRelationInfo",
-			Handler:    _FollowService_FollowRelationInfo_Handler,
+			MethodName: "CancelFollow",
+			Handler:    _FollowService_CancelFollow_Handler,
 		},
 		{
-			MethodName: "AddFollowRelation",
-			Handler:    _FollowService_AddFollowRelation_Handler,
+			MethodName: "GetFollowee",
+			Handler:    _FollowService_GetFollowee_Handler,
 		},
 		{
-			MethodName: "EditNote",
-			Handler:    _FollowService_EditNote_Handler,
+			MethodName: "FollowInfo",
+			Handler:    _FollowService_FollowInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
