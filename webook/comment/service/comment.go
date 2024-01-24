@@ -23,8 +23,8 @@ type commentService struct {
 
 func (c *commentService) GetMoreReplies(ctx context.Context,
 	rid int64,
-	minID int64, limit int64) ([]domain.Comment, error) {
-	return c.repo.GetMoreReplies(ctx, rid, minID, limit)
+	maxID int64, limit int64) ([]domain.Comment, error) {
+	return c.repo.GetMoreReplies(ctx, rid, maxID, limit)
 }
 
 func NewCommentSvc(repo repository.CommentRepository) CommentService {
@@ -36,9 +36,6 @@ func NewCommentSvc(repo repository.CommentRepository) CommentService {
 func (c *commentService) GetCommentList(ctx context.Context, biz string,
 	bizId, minID, limit int64) ([]domain.Comment, error) {
 	list, err := c.repo.FindByBiz(ctx, biz, bizId, minID, limit)
-	if err != nil {
-		return nil, err
-	}
 	return list, err
 }
 

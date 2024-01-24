@@ -29,11 +29,11 @@ type GORMCommentDAO struct {
 }
 
 func (c *GORMCommentDAO) FindRepliesByRID(ctx context.Context,
-	rID int64, ID int64, limit int64) ([]Comment, error) {
+	rID int64, maxId int64, limit int64) ([]Comment, error) {
 	var res []Comment
 	err := c.db.WithContext(ctx).
-		Where("root_ID = ? AND ID < ?", rID, ID).
-		Order("ID DESC").
+		Where("root_ID = ? AND ID > ?", rID, maxId).
+		Order("ID ASC").
 		Limit(int(limit)).Find(&res).Error
 	return res, err
 }
@@ -57,7 +57,8 @@ func (c *GORMCommentDAO) FindByBiz(ctx context.Context, biz string,
 	bizID, minID, limit int64) ([]Comment, error) {
 	var res []Comment
 	err := c.db.WithContext(ctx).
-		Where("biz = ? AND biz_ID = ? AND ID < ? AND pID IS NULL", biz, bizID, minID).
+		// 我只要顶级评论
+		Where("biz = ? AND biz_ID = ? AND id < ? AND pid IS NULL", biz, bizID, minID).
 		Limit(int(limit)).
 		Find(&res).Error
 	return res, err
@@ -65,11 +66,11 @@ func (c *GORMCommentDAO) FindByBiz(ctx context.Context, biz string,
 
 // FindRepliesByPID 查找评论的直接评论
 func (c *GORMCommentDAO) FindRepliesByPID(ctx context.Context,
-	pID int64,
+	pid int64,
 	offset,
 	limit int) ([]Comment, error) {
 	var res []Comment
-	err := c.db.WithContext(ctx).Where("pID = ?", pID).
+	err := c.db.WithContext(ctx).Where("pid = ?", pid).
 		Order("ID DESC").
 		Offset(offset).Limit(limit).Find(&res).Error
 	return res, err

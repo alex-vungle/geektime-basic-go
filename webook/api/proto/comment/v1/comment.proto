@@ -23,6 +23,8 @@ service CommentService {
   rpc GetMoreReplies(GetMoreRepliesRequest) returns (GetMoreRepliesResponse);
 }
 
+// 安排评论时间排序，在使用自增主键的情况下，实际上就是按照主键大小排序，倒序
+//
 message CommentListRequest {
   string biz = 1;
   int64 bizid = 2;
@@ -50,7 +52,7 @@ message CreateCommentResponse {
 
 message GetMoreRepliesRequest {
   int64 rid = 1;
-  int64 min_id = 2;
+  int64 max_id = 2;
   int64 limit = 3;
 }
 message GetMoreRepliesResponse {

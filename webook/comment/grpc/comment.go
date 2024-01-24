@@ -27,7 +27,7 @@ func NewGrpcServer(svc service.CommentService) *CommentServiceServer {
 }
 
 func (c *CommentServiceServer) GetMoreReplies(ctx context.Context, req *commentv1.GetMoreRepliesRequest) (*commentv1.GetMoreRepliesResponse, error) {
-	cs, err := c.svc.GetMoreReplies(ctx, req.Rid, req.MinId, req.Limit)
+	cs, err := c.svc.GetMoreReplies(ctx, req.Rid, req.MaxId, req.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +38,9 @@ func (c *CommentServiceServer) GetMoreReplies(ctx context.Context, req *commentv
 
 func (c *CommentServiceServer) GetCommentList(ctx context.Context, request *commentv1.CommentListRequest) (*commentv1.CommentListResponse, error) {
 	minID := request.MinId
-	// 第一次查询
+	// 第一次查询，这边我们认为用户没有传
 	if minID <= 0 {
+		// 从当前最新的评论开始取
 		minID = math.MaxInt64
 	}
 	domainComments, err := c.svc.

@@ -21,7 +21,7 @@ type CommentRepository interface {
 	CreateComment(ctx context.Context, comment domain.Comment) error
 	// GetCommentByIds 获取单条评论 支持批量获取
 	GetCommentByIds(ctx context.Context, id []int64) ([]domain.Comment, error)
-	GetMoreReplies(ctx context.Context, rid int64, id int64, limit int64) ([]domain.Comment, error)
+	GetMoreReplies(ctx context.Context, rid int64, maxID int64, limit int64) ([]domain.Comment, error)
 }
 
 type CachedCommentRepo struct {
@@ -29,8 +29,8 @@ type CachedCommentRepo struct {
 	l   logger.LoggerV1
 }
 
-func (c *CachedCommentRepo) GetMoreReplies(ctx context.Context, rid int64, minID int64, limit int64) ([]domain.Comment, error) {
-	cs, err := c.dao.FindRepliesByRid(ctx, rid, minID, limit)
+func (c *CachedCommentRepo) GetMoreReplies(ctx context.Context, rid int64, maxID int64, limit int64) ([]domain.Comment, error) {
+	cs, err := c.dao.FindRepliesByRID(ctx, rid, maxID, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -43,33 +43,40 @@ func (c *CachedCommentRepo) GetMoreReplies(ctx context.Context, rid int64, minID
 
 func (c *CachedCommentRepo) FindByBiz(ctx context.Context, biz string,
 	bizId, minID, limit int64) ([]domain.Comment, error) {
+	// 事实上，最新评论它的缓存效果不是很好
+	// 在这里缓存第一页，缓存咩有，就去找数据库
+	// 也可以考虑定时刷新缓存
+	// 拿到的就是顶级评论
 	daoComments, err := c.dao.FindByBiz(ctx, biz, bizId, minID, limit)
 	if err != nil {
 		return nil, err
 	}
 	res := make([]domain.Comment, 0, len(daoComments))
-	// 只找三条
+	// 拿到前三条子评论
+	// 按照 pid 来分组，取组内三条（这三条是按照 ID 降序排序）
+	// SELECT * FROM `comments` WHERE pid IN $ids GROUP BY pid ORDER BY id DESC LIMIT 3;
 	var eg errgroup.Group
-	downgraded := ctx.Value("downgraded") == "true"
-	for _, d := range daoComments {
-		d := d
-		// 这两句不能放进去，因为并发操作 res 会有坑
-		cm := c.toDomain(d)
-		res = append(res, cm)
-		if downgraded {
+	for _, dc := range daoComments {
+		dc := dc
+		current := c.toDomain(dc)
+		res = append(res, current)
+		// 降级不需要去查询子评论
+		if ctx.Value("downgrade") == "true" {
+			// 尤其要关注数据库的读压力
 			continue
 		}
 		eg.Go(func() error {
-			// 只展示三条
-			cm.Children = make([]domain.Comment, 0, 3)
-			rs, err := c.dao.FindRepliesByPid(ctx, d.PID.Int64, 0, 3)
+			// 去数据库查询
+			// 取三条回复
+			subCs, err := c.dao.FindRepliesByPID(ctx, dc.ID, 0, 3)
 			if err != nil {
-				// 我们认为这是一个可以容忍的错误
-				c.l.Error("查询子评论失败", logger.Error(err))
-				return nil
+				return err
 			}
-			for _, r := range rs {
-				cm.Children = append(cm.Children, c.toDomain(r))
+			current.Children = make([]domain.Comment, 0, len(subCs))
+			// 不然呢？
+			for _, sc := range subCs {
+				// 构建子评论
+				current.Children = append(current.Children, c.toDomain(sc))
 			}
 			return nil
 		})
@@ -79,7 +86,7 @@ func (c *CachedCommentRepo) FindByBiz(ctx context.Context, biz string,
 
 func (c *CachedCommentRepo) DeleteComment(ctx context.Context, comment domain.Comment) error {
 	return c.dao.Delete(ctx, dao.Comment{
-		Id: comment.Id,
+		ID: comment.Id,
 	})
 }
 
@@ -102,7 +109,7 @@ func (c *CachedCommentRepo) GetCommentByIds(ctx context.Context, ids []int64) ([
 
 func (c *CachedCommentRepo) toDomain(daoComment dao.Comment) domain.Comment {
 	val := domain.Comment{
-		Id: daoComment.Id,
+		Id: daoComment.ID,
 		Commentator: domain.User{
 			ID: daoComment.Uid,
 		},
@@ -127,7 +134,7 @@ func (c *CachedCommentRepo) toDomain(daoComment dao.Comment) domain.Comment {
 
 func (c *CachedCommentRepo) toEntity(domainComment domain.Comment) dao.Comment {
 	daoComment := dao.Comment{
-		Id:      domainComment.Id,
+		ID:      domainComment.Id,
 		Uid:     domainComment.Commentator.ID,
 		Biz:     domainComment.Biz,
 		BizID:   domainComment.BizID,
