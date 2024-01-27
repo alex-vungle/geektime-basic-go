@@ -15,6 +15,9 @@ func (g *GORMFollowRelationDAO) CntFollower(ctx context.Context, uid int64) (int
 	var res int64
 	err := g.db.WithContext(ctx).
 		Select("count(follower)").
+		// 我这个怎么办？
+		// 考虑在 followee 上创建一个索引（followee, status)
+		// <followee, follower> 行不行？
 		Where("followee = ? AND status = ?",
 			uid, FollowRelationStatusActive).Count(&res).Error
 	return res, err
@@ -24,6 +27,7 @@ func (g *GORMFollowRelationDAO) CntFollowee(ctx context.Context, uid int64) (int
 	var res int64
 	err := g.db.WithContext(ctx).
 		Select("count(followee)").
+		// 我在这里，能利用到 <follower, followee> 的联合唯一索引
 		Where("follower = ? AND status = ?",
 			uid, FollowRelationStatusActive).Count(&res).Error
 	return res, err
@@ -43,6 +47,8 @@ func (g *GORMFollowRelationDAO) FollowRelationList(ctx context.Context,
 	follower, offset, limit int64) ([]FollowRelation, error) {
 	var res []FollowRelation
 	err := g.db.WithContext(ctx).
+		// 这个查询要求我们要在 follower 上创建一个索引，或者 <follower, followee> 联合唯一索引
+		// 进一步考虑，将 status 也加入索引
 		Where("follower = ? AND status = ?", follower, FollowRelationStatusActive).
 		Offset(int(offset)).Limit(int(limit)).
 		Find(&res).Error

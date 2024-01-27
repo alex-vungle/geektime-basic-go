@@ -29,12 +29,22 @@ func (r *RedisFollowCache) CancelFollow(ctx context.Context, follower, followee 
 	return r.updateStaticsInfo(ctx, follower, followee, -1)
 }
 
+// 我现在要更新数量了
+// 这个地方必要根本没有必要非得保持一起成功或者一起失败
 func (r *RedisFollowCache) updateStaticsInfo(ctx context.Context, follower, followee int64, delta int64) error {
 	tx := r.client.TxPipeline()
-	// 增加 follower 的关注多少人的数量
+	// 理论上你应该要做到一起成功或者一起失败，
+	// 用 lua 脚本可以
+	// 首先更新 follower 的 followee 数量
+	// 我往这个 tx 里面增加了两个指令，Tx 只是记录了，还没发过去 redis 服务端
 	tx.HIncrBy(ctx, r.staticsKey(follower), fieldFolloweeCnt, delta)
-	// 增加 followee 被多少人关注的数量
+	// 其次你就要更新 followee 的 follower 的数量
 	tx.HIncrBy(ctx, r.staticsKey(followee), fieldFollowerCnt, delta)
+
+	// Exec 的时候，会把两条命令发过去 redis server 上，并且这两条命令会一起执行
+	// 中间不会有别的命令执行
+	// 问题来了，有没有可能，执行了第一条命令成功，但是没有执行第二条？
+	// Redis 的事务，不具备 ACID 的特性
 	_, err := tx.Exec(ctx)
 	return err
 }

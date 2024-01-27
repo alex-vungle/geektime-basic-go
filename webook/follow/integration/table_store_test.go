@@ -18,15 +18,8 @@ type TableStoreDAOTestSuite struct {
 }
 
 func (s *TableStoreDAOTestSuite) SetupSuite() {
-	//tableStore:
-	//endPoint:
-	//	"https://zwl.cn-hangzhou.tablestore.aliyuncs.com"
-	//accessKeyId:
-	//	"LTAI5tR9G55ZtQr7PHwdmNAE"
-	//accessKeySecret:
-	//	"OSloApR9EViZoZZynIwwuliIGHtOks"
-	//instanceName:
-	//	"zwl"
+	// 自己去阿里云申请一个体验装，然后自己体验一下
+	// 一堆坑
 	endpoint := os.Getenv("TS_ENDPOINT")
 	accessId := os.Getenv("TS_ACCESS_KEY_ID")
 	accessKeySecret := os.Getenv("TS_ACCESS_KEY_SECRET")

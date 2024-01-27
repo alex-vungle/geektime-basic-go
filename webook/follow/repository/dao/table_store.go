@@ -20,8 +20,18 @@ type TableStoreFollowRelationDao struct {
 
 func (t *TableStoreFollowRelationDao) FollowRelationList(ctx context.Context, follower, offset, limit int64) ([]FollowRelation, error) {
 	request := &tablestore.SQLQueryRequest{
+		// 可以替换成 select *
+		// 这种写法有什么问题？有什么隐患？
+		// SQL 注入的隐患
+		// 在实践中，如果要利用前端的输入来拼接 SQL 语句，千万要小心 SQL 注入的问题
+		// select id,follower,followee from follow_relations where follower = 1 OR 1 = 1 AND status = 2 OFFSET 0 LIMIT 10
+		// select id,follower,followee from follow_relations where follower = 1; TRUNCATE users OR 1 = 1 AND status = 2 OFFSET 0 LIMIT 10
+		// 用户登录 select * from xxx where username = %s AND password = %s;
+		//Query: fmt.Sprintf("select id,follower,followee from %s where follower = %s AND status = %d OFFSET %d LIMIT %d",
+		//	FollowRelationTableName, "1 OR 1 = 1", FollowRelationStatusActive, offset, limit)}
 		Query: fmt.Sprintf("select id,follower,followee from %s where follower = %d AND status = %d OFFSET %d LIMIT %d",
 			FollowRelationTableName, follower, FollowRelationStatusActive, offset, limit)}
+	// SELECT * FROM xx WHERE id = ? // 是利用占位符的，然后传参数
 	response, err := t.client.SQLQuery(request)
 	if err != nil {
 		return nil, err
@@ -41,10 +51,14 @@ func (t *TableStoreFollowRelationDao) FollowRelationList(ctx context.Context, fo
 
 func (t *TableStoreFollowRelationDao) UpdateStatus(ctx context.Context, followee int64, follower int64, status uint8) error {
 	cond := tablestore.NewCompositeColumnCondition(tablestore.LO_AND)
+	// 更新条件，对标 WHERE 语句
+	// 多个 Filter 是 AND 条件连在一起
 	cond.AddFilter(tablestore.NewSingleColumnCondition("follower", tablestore.CT_EQUAL, follower))
 	cond.AddFilter(tablestore.NewSingleColumnCondition("followee", tablestore.CT_EQUAL, followee))
 	req := new(tablestore.UpdateRowChange)
 	req.TableName = FollowRelationTableName
+	// 我预期这一行数据是存在的
+	// 不在的话，会报错
 	req.SetCondition(tablestore.RowExistenceExpectation_EXPECT_EXIST)
 	req.SetColumnCondition(cond)
 	req.PutColumn("status", int64(status))
@@ -87,20 +101,25 @@ func (t *TableStoreFollowRelationDao) CntFollowee(ctx context.Context, uid int64
 }
 
 func (t *TableStoreFollowRelationDao) CreateFollowRelation(ctx context.Context, c FollowRelation) error {
-	// 创建关注关系
+	now := time.Now().UnixMilli()
+	// UpdateRowRequest + RowExistenceExpectation_IGNORE
+	// 可以实现一个 insert or update 的语义
+	// 单纯的使用 update 或者 put，都不能达成这个效果
 	req := new(tablestore.UpdateRowRequest)
-	change := new(tablestore.UpdateRowChange)
-	change.TableName = FollowRelationTableName
-	putPk := new(tablestore.PrimaryKey)
-	putPk.AddPrimaryKeyColumn("follower", c.Follower)
-	putPk.AddPrimaryKeyColumn("followee", c.Followee)
-	change.PrimaryKey = putPk
-	now := time.Now()
-	change.PutColumn("status", int64(FollowRelationStatusActive))
-	change.PutColumn("utime", now.Unix())
-	change.PutColumn("ctime", now.Unix())
-	// 如果要是冲突了就忽略掉
+	pk := &tablestore.PrimaryKey{}
+	pk.AddPrimaryKeyColumn("follower", c.Follower)
+	pk.AddPrimaryKeyColumn("followee", c.Followee)
+	change := &tablestore.UpdateRowChange{
+		TableName: FollowRelationTableName,
+		// 有一个小的问题，这边其实可以不用 id, 直接用 follower 和 followee 构成一个主键
+		// 如果要用 ID，你可以用自增主键
+		PrimaryKey: pk,
+	}
 	change.SetCondition(tablestore.RowExistenceExpectation_IGNORE)
+	// 只能用 Int64，
+	change.PutColumn("status", int64(c.Status))
+	change.PutColumn("ctime", now)
+	change.PutColumn("utime", now)
 	req.UpdateRowChange = change
 	_, err := t.client.UpdateRow(req)
 	return err

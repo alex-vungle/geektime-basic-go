@@ -145,6 +145,41 @@ type Comment struct {
 	Utime int64
 }
 
+//type TreeNode struct {
+//	PID    int64
+//	RootID int64
+//}
+//
+//type Organization struct {
+//	// 这边就具备了构建树形结构的必要的字段
+//	TreeNode
+//}
+
+//func ToTree(data []Organization) *TreeNode {
+//
+//}
+
 func (*Comment) TableName() string {
 	return "comments"
 }
+
+//type UserDAO interface {
+//	// @sql SELECT * FROM `users` WHERE `id`=$id
+//	GetByID(ctx context.Context, id int64) (*User, error)
+//	// @sql SELETCT * FROM `users` WHERE region = $region OFFSET $offset LIMIT $limit
+//	ListByRegion(ctx context.Context, region string, offset, limit int64) ([]*User, error)
+//}
+
+// 用 AST 解析 UserDAO 的定义
+
+// 结合代码生成技术（GO 模板编程）
+//type UserDAOImple struct {
+//	db *sql.DB
+//}
+
+// EXPLAIN SELECT * xxxx...
+// 返回一个预估的行数
+
+//type UserDAO struct {
+//	GetByID func(ctx context.Context, id int64) (*User, error) `sql:"SELECT xx WHERE id = ? "`
+//}

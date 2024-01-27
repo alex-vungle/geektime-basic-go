@@ -91,6 +91,8 @@ func (d *CachedRelationRepository) AddFollowRelation(ctx context.Context, c doma
 	if err != nil {
 		return err
 	}
+	// 这里要更新在 Redis 上的缓存计数，对于 A 关注了 B 来说，这里要增加 A 的 followee 的数量
+	// 同时要增加 B 的 follower 的数量
 	return d.cache.Follow(ctx, c.Follower, c.Followee)
 }
 

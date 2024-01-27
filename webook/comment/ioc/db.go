@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gitee.com/geekbang/basic-go/webook/comment/repository/dao"
 
-	prometheus2 "gitee.com/geekbang/basic-go/webook/pkg/gormx/callbacks/prometheus"
 	"gitee.com/geekbang/basic-go/webook/pkg/logger"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
@@ -52,17 +51,17 @@ func InitDB(l logger.LoggerV1) *gorm.DB {
 		panic(err)
 	}
 
-	prom := prometheus2.Callbacks{
-		Namespace:  "geekbang_daming",
-		Subsystem:  "webook",
-		Name:       "gorm",
-		InstanceID: "my-instance-1",
-		Help:       "gorm DB 查询",
-	}
-	err = prom.Register(db)
-	if err != nil {
-		panic(err)
-	}
+	//prom := prometheus2.Callbacks{
+	//	Namespace:  "geekbang_daming",
+	//	Subsystem:  "webook",
+	//	Name:       "gorm",
+	//	InstanceID: "my-instance-1",
+	//	Help:       "gorm DB 查询",
+	//}
+	//err = prom.Register(db)
+	//if err != nil {
+	//	panic(err)
+	//}
 	err = dao.InitTables(db)
 	if err != nil {
 		panic(err)
