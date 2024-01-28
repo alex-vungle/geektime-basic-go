@@ -2,8 +2,7 @@ package ioc
 
 import (
 	"fmt"
-	"gitee.com/geekbang/basic-go/webook/comment/repository/dao"
-
+	"gitee.com/geekbang/basic-go/webook/follow/repository/dao"
 	"gitee.com/geekbang/basic-go/webook/pkg/logger"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
@@ -50,6 +49,7 @@ func InitDB(l logger.LoggerV1) *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+
 	err = dao.InitTables(db)
 	if err != nil {
 		panic(err)

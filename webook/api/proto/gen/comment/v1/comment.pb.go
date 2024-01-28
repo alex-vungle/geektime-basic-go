@@ -26,10 +26,13 @@ type CommentListRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// 按照资源来排序
 	Biz   string `protobuf:"bytes,1,opt,name=biz,proto3" json:"biz,omitempty"`
 	Bizid int64  `protobuf:"varint,2,opt,name=bizid,proto3" json:"bizid,omitempty"`
-	MinId int64  `protobuf:"varint,3,opt,name=min_id,json=minId,proto3" json:"min_id,omitempty"`
-	Limit int64  `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+	// 分页接口，按照最新评论排序（id 降序/ctime 降序）
+	// 上一批次最小 ID
+	MinId int64 `protobuf:"varint,3,opt,name=min_id,json=minId,proto3" json:"min_id,omitempty"`
+	Limit int64 `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
 }
 
 func (x *CommentListRequest) Reset() {
@@ -315,7 +318,7 @@ type GetMoreRepliesRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	Rid   int64 `protobuf:"varint,1,opt,name=rid,proto3" json:"rid,omitempty"`
-	MinId int64 `protobuf:"varint,2,opt,name=min_id,json=minId,proto3" json:"min_id,omitempty"`
+	MaxId int64 `protobuf:"varint,2,opt,name=max_id,json=maxId,proto3" json:"max_id,omitempty"`
 	Limit int64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 }
 
@@ -358,9 +361,9 @@ func (x *GetMoreRepliesRequest) GetRid() int64 {
 	return 0
 }
 
-func (x *GetMoreRepliesRequest) GetMinId() int64 {
+func (x *GetMoreRepliesRequest) GetMaxId() int64 {
 	if x != nil {
-		return x.MinId
+		return x.MaxId
 	}
 	return 0
 }
@@ -424,14 +427,12 @@ type Comment struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id      int64  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Uid     int64  `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
-	Biz     string `protobuf:"bytes,3,opt,name=biz,proto3" json:"biz,omitempty"`
-	Bizid   int64  `protobuf:"varint,4,opt,name=bizid,proto3" json:"bizid,omitempty"`
-	Content string `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`
-	// 这里你可以考虑，只传入 id
-	RootComment *Comment `protobuf:"bytes,6,opt,name=root_comment,json=rootComment,proto3" json:"root_comment,omitempty"`
-	// 只传入 id
+	Id            int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Uid           int64    `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
+	Biz           string   `protobuf:"bytes,3,opt,name=biz,proto3" json:"biz,omitempty"`
+	Bizid         int64    `protobuf:"varint,4,opt,name=bizid,proto3" json:"bizid,omitempty"`
+	Content       string   `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`
+	RootComment   *Comment `protobuf:"bytes,6,opt,name=root_comment,json=rootComment,proto3" json:"root_comment,omitempty"`
 	ParentComment *Comment `protobuf:"bytes,7,opt,name=parent_comment,json=parentComment,proto3" json:"parent_comment,omitempty"`
 	// 正常来说，你在时间传递上，如果不想用 int64 之类的
 	// 就可以考虑使用这个 Timestamp
@@ -565,8 +566,8 @@ var file_comment_v1_comment_proto_rawDesc = []byte{
 	0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x56, 0x0a, 0x15, 0x47,
 	0x65, 0x74, 0x4d, 0x6f, 0x72, 0x65, 0x52, 0x65, 0x70, 0x6c, 0x69, 0x65, 0x73, 0x52, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x72, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x03, 0x52, 0x03, 0x72, 0x69, 0x64, 0x12, 0x15, 0x0a, 0x06, 0x6d, 0x69, 0x6e, 0x5f, 0x69, 0x64,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x6d, 0x69, 0x6e, 0x49, 0x64, 0x12, 0x14, 0x0a,
+	0x03, 0x52, 0x03, 0x72, 0x69, 0x64, 0x12, 0x15, 0x0a, 0x06, 0x6d, 0x61, 0x78, 0x5f, 0x69, 0x64,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x6d, 0x61, 0x78, 0x49, 0x64, 0x12, 0x14, 0x0a,
 	0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x6c, 0x69,
 	0x6d, 0x69, 0x74, 0x22, 0x47, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x4d, 0x6f, 0x72, 0x65, 0x52, 0x65,
 	0x70, 0x6c, 0x69, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2d, 0x0a,

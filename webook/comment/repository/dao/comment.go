@@ -24,6 +24,13 @@ type CommentDAO interface {
 	FindRepliesByRid(ctx context.Context, rid int64, id int64, limit int64) ([]Comment, error)
 }
 
+type TreeBase struct {
+	PID int64
+}
+
+// SELECT (COUNT id) FROM xx
+// EXPLAIN SELECT id from xx
+
 // Comment 把这个评论的表结构设计好
 type Comment struct {
 	Id int64 `gorm:"autoIncrement,primaryKey"`
