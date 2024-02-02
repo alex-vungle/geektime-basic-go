@@ -90,8 +90,9 @@ type GetFolloweeRequest struct {
 
 	// 关注者，也就是某人查看自己的关注列表
 	Follower int64 `protobuf:"varint,1,opt,name=follower,proto3" json:"follower,omitempty"`
-	Offset   int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
-	Limit    int64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	// min_id, max_id
+	Offset int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit  int64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 }
 
 func (x *GetFolloweeRequest) Reset() {
