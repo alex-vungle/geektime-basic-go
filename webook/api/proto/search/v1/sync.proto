@@ -14,6 +14,8 @@ service SyncService {
   rpc InputArticle (InputArticleRequest) returns (InputArticleResponse);
   // 现在我要同步评论数据，该怎么办？
   // rpc InputComment()
+  // 同步标签
+  // rpc InputTags()
 
 
   // 假如说我没有这个功能

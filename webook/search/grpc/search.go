@@ -22,6 +22,10 @@ func (s *SearchServiceServer) Register(server grpc.ServiceRegistrar) {
 	searchv1.RegisterSearchServiceServer(server, s)
 }
 
+//func (s *SearchServiceServer) SearchUserByAgent(ctx context.Context,) {
+//
+//}
+
 func (s *SearchServiceServer) Search(ctx context.Context, request *searchv1.SearchRequest) (*searchv1.SearchResponse, error) {
 	resp, err := s.svc.Search(ctx, request.Uid, request.Expression)
 	if err != nil {

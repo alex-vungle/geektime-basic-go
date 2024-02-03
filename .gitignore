@@ -3,3 +3,4 @@ test.db
 go.work
 /webook/interactive/integration/data.sql
 /webook/payment/config/cert/
+/webook/tag/repository/dao/gorm.db

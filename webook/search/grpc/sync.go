@@ -23,6 +23,7 @@ func (s *SyncServiceServer) Register(server grpc.ServiceRegistrar) {
 	searchv1.RegisterSyncServiceServer(server, s)
 }
 
+// InputUser 业务专属接口，你可以高度定制化
 func (s *SyncServiceServer) InputUser(ctx context.Context, request *searchv1.InputUserRequest) (*searchv1.InputUserResponse, error) {
 	err := s.syncSvc.InputUser(ctx, s.toDomainUser(request.GetUser()))
 	return &searchv1.InputUserResponse{}, err

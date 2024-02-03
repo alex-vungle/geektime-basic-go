@@ -3,6 +3,7 @@ package dao
 import (
 	"context"
 	"encoding/json"
+	"github.com/ecodeclub/ekit/slice"
 	"github.com/olivere/elastic/v7"
 	"strconv"
 	"strings"
@@ -35,10 +36,20 @@ func (h *ArticleElasticDAO) Search(ctx context.Context, tagArtIds []int64, keywo
 	// status 精确查找
 	statusTerm := elastic.NewTermQuery("status", 2)
 
+	// 标签命中
+	tagArtIdAnys := slice.Map(tagArtIds, func(idx int, src int64) any {
+		return src
+	})
+
 	// 内容或者标题，模糊查找（match）
 	title := elastic.NewMatchQuery("title", queryString)
 	content := elastic.NewMatchQuery("content", queryString)
 	or := elastic.NewBoolQuery().Should(title, content)
+	if len(tagArtIds) > 0 {
+		tag := elastic.NewTermsQuery("id", tagArtIdAnys...).
+			Boost(2.0)
+		or = or.Should(tag)
+	}
 
 	and := elastic.NewBoolQuery().Must(statusTerm, or)
 

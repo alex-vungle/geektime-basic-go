@@ -109,3 +109,54 @@ var SearchService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "search/v1/search.proto",
 }
+
+const ()
+
+// UserServiceServiceClient is the client API for UserServiceService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type UserServiceServiceClient interface {
+}
+
+type userServiceServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewUserServiceServiceClient(cc grpc.ClientConnInterface) UserServiceServiceClient {
+	return &userServiceServiceClient{cc}
+}
+
+// UserServiceServiceServer is the server API for UserServiceService service.
+// All implementations must embed UnimplementedUserServiceServiceServer
+// for forward compatibility
+type UserServiceServiceServer interface {
+	mustEmbedUnimplementedUserServiceServiceServer()
+}
+
+// UnimplementedUserServiceServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedUserServiceServiceServer struct {
+}
+
+func (UnimplementedUserServiceServiceServer) mustEmbedUnimplementedUserServiceServiceServer() {}
+
+// UnsafeUserServiceServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserServiceServiceServer will
+// result in compilation errors.
+type UnsafeUserServiceServiceServer interface {
+	mustEmbedUnimplementedUserServiceServiceServer()
+}
+
+func RegisterUserServiceServiceServer(s grpc.ServiceRegistrar, srv UserServiceServiceServer) {
+	s.RegisterService(&UserServiceService_ServiceDesc, srv)
+}
+
+// UserServiceService_ServiceDesc is the grpc.ServiceDesc for UserServiceService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var UserServiceService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "search.v1.UserServiceService",
+	HandlerType: (*UserServiceServiceServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams:     []grpc.StreamDesc{},
+	Metadata:    "search/v1/search.proto",
+}

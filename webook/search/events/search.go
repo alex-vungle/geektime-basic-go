@@ -46,5 +46,6 @@ func (a *SyncDataEventConsumer) Consume(sg *sarama.ConsumerMessage,
 	evt SyncDataEvent) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
+	// 在这里执行转化
 	return a.svc.InputAny(ctx, evt.IndexName, evt.DocID, evt.Data)
 }
