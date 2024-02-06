@@ -28,8 +28,11 @@ func TestGORMUserDAO_Insert(t *testing.T) {
 				assert.NoError(t, err)
 				mockRes := sqlmock.NewResult(123, 1)
 				// 这边要求传入的是 sql 的正则表达式
-				mock.ExpectExec("INSERT INTO .*").
-					WillReturnResult(mockRes)
+				mock.ExpectExec("INSERT INTO .*").WithArgs(
+					// 你要比较参数，你就在参数的特定位置（下标找准）传入具体的参数
+					sqlmock.AnyArg(), sqlmock.AnyArg(), "Tom", sqlmock.AnyArg(), sqlmock.AnyArg(),
+					sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(),
+				).WillReturnResult(mockRes)
 				return db
 			},
 			ctx: context.Background(),

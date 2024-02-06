@@ -26,6 +26,7 @@ func (a *ArticleGORMReaderDAO) UpsertV2(ctx context.Context, art PublishedArticl
 	panic("implement me")
 }
 
+// db dsn => mysql.company.com:3306/article_reader
 func NewArticleGORMReaderDAO(db *gorm.DB) ArticleReaderDAO {
 	return &ArticleGORMReaderDAO{db: db}
 }

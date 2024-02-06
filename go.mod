@@ -36,7 +36,7 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.767
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.767
 	github.com/wechatpay-apiv3/wechatpay-go v0.2.18
-	github.com/zeromicro/go-zero v1.6.1
+	github.com/zeromicro/go-zero v1.6.0
 	go.etcd.io/etcd/client/v3 v3.5.11
 	go.mongodb.org/mongo-driver v1.13.1
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.46.1

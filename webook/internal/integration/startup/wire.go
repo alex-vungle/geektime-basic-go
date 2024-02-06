@@ -43,6 +43,7 @@ var articlSvcProvider = wire.NewSet(
 	repository.NewCachedArticleRepository,
 	cache.NewArticleRedisCache,
 	dao.NewArticleGORMDAO,
+	InitRewardServiceClient,
 	service.NewArticleService)
 
 var interactiveSvcSet = wire.NewSet(dao2.NewGORMInteractiveDAO,
@@ -95,6 +96,7 @@ func InitArticleHandler(dao dao.ArticleDAO) *web.ArticleHandler {
 		thirdPartySet,
 		userSvcProvider,
 		interactiveSvcSet,
+		InitRewardServiceClient,
 		repository.NewCachedArticleRepository,
 		cache.NewArticleRedisCache,
 		service.NewArticleService,

@@ -132,7 +132,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 			assert.NoError(t, err)
 			recorder := httptest.NewRecorder()
 
-			// 执行
+			// 执行，相当于我发了一个 HTTP 请求到 web 服务器上
 			server.ServeHTTP(recorder, req)
 			// 断言结果
 			assert.Equal(t, tc.wantCode, recorder.Code)

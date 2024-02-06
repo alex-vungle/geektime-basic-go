@@ -11,6 +11,7 @@ type ArticleAuthorDAO interface {
 	Update(ctx context.Context, art Article) error
 }
 
+// db dsn => mysql.company.com:3306/article_reader
 type ArticleGORMAuthorDAO struct {
 	db *gorm.DB
 }
