@@ -21,10 +21,11 @@ func Init() *App {
 	loggerV1 := ioc.InitLogger()
 	db := ioc.InitDB(loggerV1)
 	commentDAO := dao.NewCommentDAO(db)
-	commentRepo := repository.NewCommentRepo(commentDAO)
-	commentService := service.NewCommentSvc(commentRepo)
+	commentRepository := repository.NewCommentRepo(commentDAO, loggerV1)
+	commentService := service.NewCommentSvc(commentRepository)
 	commentServiceServer := grpc.NewGrpcServer(commentService)
-	server := ioc.InitGRPCxServer(commentServiceServer)
+	client := ioc.InitEtcdClient()
+	server := ioc.InitGRPCxServer(commentServiceServer, client, loggerV1)
 	app := &App{
 		server: server,
 	}
@@ -35,4 +36,4 @@ func Init() *App {
 
 var serviceProviderSet = wire.NewSet(dao.NewCommentDAO, repository.NewCommentRepo, service.NewCommentSvc, grpc.NewGrpcServer)
 
-var thirdProvider = wire.NewSet(ioc.InitLogger, ioc.InitDB)
+var thirdProvider = wire.NewSet(ioc.InitLogger, ioc.InitDB, ioc.InitEtcdClient)

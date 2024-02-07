@@ -21,6 +21,7 @@ var serviceProviderSet = wire.NewSet(
 var thirdProvider = wire.NewSet(
 	ioc.InitLogger,
 	ioc.InitDB,
+	ioc.InitEtcdClient,
 )
 
 func Init() *App {
