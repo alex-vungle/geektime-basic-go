@@ -44,10 +44,69 @@ type readInfo struct {
 	aid int64
 }
 
+// GetPublishedByIdV1 批量发送的例子
+func (svc *articleService) GetPublishedByIdV1(ctx context.Context, id, uid int64) (domain.Article, error) {
+	// 另一个选项，在这里组装 Author，调用 UserService
+	art, err := svc.repo.GetPublishedById(ctx, id)
+	if err == nil {
+		go func() {
+			// 改批量的做法
+			svc.ch <- readInfo{
+				aid: id,
+				uid: uid,
+			}
+		}()
+	}
+	return art, err
+}
+
+func (svc *articleService) batchSendReadInfo(ctx context.Context) {
+	// 10 个一批
+	// 单个转批量都要考虑的兜底问题
+	for {
+		ctx, cancel := context.WithTimeout(ctx, time.Second)
+		const batchSize = 10
+		uids := make([]int64, 0, 10)
+		aids := make([]int64, 0, 10)
+		send := false
+		for !send {
+			select {
+			// 这边是超时了
+			case <-ctx.Done():
+				// 也要执行发送
+				//goto send
+				send = true
+			case info, ok := <-svc.ch:
+				if !ok {
+					cancel()
+					send = true
+					continue
+				}
+				uids = append(uids, info.uid)
+				aids = append(aids, info.aid)
+				// 凑够了
+				if len(uids) == batchSize {
+					//goto send
+					send = true
+				}
+			}
+		}
+		//send:
+		// 装满了，凑够了一批
+		svc.producer.ProduceReadEventV1(context.Background(),
+			events.ReadEventV1{
+				Uids: uids,
+				Aids: aids,
+			})
+		cancel()
+	}
+}
+
 func (svc *articleService) GetPublishedById(ctx context.Context, id, uid int64) (domain.Article, error) {
 	// 另一个选项，在这里组装 Author，调用 UserService
 	art, err := svc.repo.GetPublishedById(ctx, id)
 	if err == nil {
+		// 每次打开一篇文章，就发一条消息
 		go func() {
 			// 生产者也可以通过改批量来提高性能
 			er := svc.producer.ProduceReadEvent(
@@ -63,13 +122,13 @@ func (svc *articleService) GetPublishedById(ctx context.Context, id, uid int64) 
 			}
 		}()
 
-		go func() {
-			// 改批量的做法
-			svc.ch <- readInfo{
-				aid: id,
-				uid: uid,
-			}
-		}()
+		//go func() {
+		//	// 改批量的做法
+		//	svc.ch <- readInfo{
+		//		aid: id,
+		//		uid: uid,
+		//	}
+		//}()
 	}
 	return art, err
 }
@@ -135,12 +194,41 @@ func (a *articleService) PublishV1(ctx context.Context, art domain.Article) (int
 func NewArticleService(repo article.ArticleRepository,
 	l logger.LoggerV1,
 	producer events.Producer) ArticleService {
-	return &articleService{
+	res := &articleService{
 		repo:     repo,
 		producer: producer,
 		l:        l,
 		//ch:       make(chan readInfo, 10),
 	}
+	return res
+}
+
+// ctx, cancel := context.WithCancel(context.Background())
+// NewArticleServiceV3(ctx)
+// 这里一大堆业务逻辑
+// 主程序（main 函数准备退出）
+// cancel()
+func NewArticleServiceV3(ctx context.Context, repo article.ArticleRepository,
+	l logger.LoggerV1,
+	producer events.Producer) ArticleService {
+	res := &articleService{
+		repo:     repo,
+		producer: producer,
+		l:        l,
+		//ch:       make(chan readInfo, 10),
+	}
+	go func() {
+		// 我系统关闭的时候，你 channel 里面还有数据，没发出去，怎么办？
+		// 第一种是啥也不干，你在关闭的时候，time.Sleep
+		// 第二种
+		res.batchSendReadInfo(ctx)
+	}()
+	return res
+}
+
+func (a *articleService) Close() error {
+	close(a.ch)
+	return nil
 }
 
 func NewArticleServiceV2(repo article.ArticleRepository,

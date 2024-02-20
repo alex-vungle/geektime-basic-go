@@ -7,9 +7,10 @@ import (
 // User 领域对象，是 DDD 中的 entity
 // BO(business object)
 type User struct {
-	Id       int64
-	Email    string
-	Password string
+	Id    int64
+	Email string
+	// <input type={{.input}}>
+	Password string `fe:"input=password"`
 	Phone    string
 	Nickname string
 
