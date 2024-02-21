@@ -25,6 +25,9 @@ type ArticleRepository interface {
 	GetByID(ctx context.Context, id int64) (domain.Article, error)
 	GetPublishedById(ctx context.Context, id int64) (domain.Article, error)
 	ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]domain.Article, error)
+
+	// 加更新缓存的方法，强限制了所有的实现都必须有缓存
+	// SetPubCache()
 	//FindById(ctx context.Context, id int64) domain.Article
 }
 
@@ -52,7 +55,7 @@ func (repo *CachedArticleRepository) ListPub(ctx context.Context, start time.Tim
 		return nil, err
 	}
 	return slice.Map(res, func(idx int, src dao.Article) domain.Article {
-		return repo.toDomain(src)
+		return repo.ToDomain(src)
 	}), nil
 }
 
@@ -85,7 +88,7 @@ func (c *CachedArticleRepository) GetByID(ctx context.Context, id int64) (domain
 	if err != nil {
 		return domain.Article{}, err
 	}
-	return c.toDomain(data), nil
+	return c.ToDomain(data), nil
 }
 
 func (c *CachedArticleRepository) List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error) {
@@ -106,7 +109,7 @@ func (c *CachedArticleRepository) List(ctx context.Context, uid int64, offset in
 		return nil, err
 	}
 	data := slice.Map[dao.Article, domain.Article](res, func(idx int, src dao.Article) domain.Article {
-		return c.toDomain(src)
+		return c.ToDomain(src)
 	})
 	// 回写缓存的时候，可以同步，也可以异步
 	go func() {
@@ -117,7 +120,7 @@ func (c *CachedArticleRepository) List(ctx context.Context, uid int64, offset in
 	return data, nil
 }
 
-func (repo *CachedArticleRepository) toDomain(art dao.Article) domain.Article {
+func (repo *CachedArticleRepository) ToDomain(art dao.Article) domain.Article {
 	return domain.Article{
 		Id:      art.Id,
 		Title:   art.Title,
@@ -147,6 +150,10 @@ func (c *CachedArticleRepository) Sync(ctx context.Context, art domain.Article) 
 		}
 	}
 	return id, err
+}
+
+func (c *CachedArticleRepository) Cache() cache.ArticleCache {
+	return c.cache
 }
 
 //func (c *CachedArticleRepository) SyncV2_1(ctx context.Context, art domain.Article) (int64, error) {
