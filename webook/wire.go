@@ -46,6 +46,7 @@ func InitWebServer() *App {
 		//interactiveSvcSet,
 		//ioc.InitIntrClient,
 		ioc.InitIntrClientV1,
+		ioc.InitReward,
 		rankingSvcSet,
 		ioc.InitJobs,
 		ioc.InitRankingJob,

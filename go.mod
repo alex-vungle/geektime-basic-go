@@ -51,6 +51,7 @@ require (
 	golang.org/x/sync v0.5.0
 	google.golang.org/grpc v1.60.0
 	google.golang.org/protobuf v1.31.1-0.20231027082548-f4a6c1f6e5c1
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gorm.io/driver/mysql v1.5.2
 	gorm.io/driver/sqlite v1.5.4
 	gorm.io/gorm v1.25.5
