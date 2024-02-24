@@ -16,7 +16,13 @@ const topicFeedEvent = "feed_event"
 // FeedEvent 为什么你一开始就确定用消息队列
 type FeedEvent struct {
 	// Type 是我内部定义，我发给不同业务方
+	// like_event
+	// like_event_v1
 	Type string
+
+	// 加一个 version
+	// Version int
+
 	// 你业务方的具体的数据
 	// 点赞需要三个 key:
 	// liker
@@ -25,6 +31,17 @@ type FeedEvent struct {
 	Metadata map[string]string
 	//Metadata string
 	//Metadata []byte
+}
+
+// const topicFeedEvent = "feed_event_v2"
+type FeedEventV2 struct {
+	// 新结构
+}
+
+type FeedEventV2Consumer struct {
+	client sarama.Client
+	l      logger.LoggerV1
+	//svc    service.FeedServiceV2
 }
 
 // LikeFeedEvent 能不能？
