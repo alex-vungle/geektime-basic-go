@@ -21,6 +21,10 @@ type FeedEventRepo interface {
 	FindPullEvents(ctx context.Context, uids []int64, timestamp, limit int64) ([]domain.FeedEvent, error)
 	// FindPushEvents 获取推事件，也就是自己收件箱里面的事件
 	FindPushEvents(ctx context.Context, uid, timestamp, limit int64) ([]domain.FeedEvent, error)
+	// FindPullEventsWithTyp 获取某个类型的拉事件，
+	FindPullEventsWithTyp(ctx context.Context, typ string, uids []int64, timestamp, limit int64) ([]domain.FeedEvent, error)
+	// FindPushEvents 获取某个类型的推事件，也就
+	FindPushEventsWithTyp(ctx context.Context, typ string, uid, timestamp, limit int64) ([]domain.FeedEvent, error)
 }
 
 type feedEventRepo struct {
@@ -35,6 +39,30 @@ func NewFeedEventRepo(pullDao dao.FeedPullEventDAO, pushDao dao.FeedPushEventDAO
 		pushDao:   pushDao,
 		feedCache: feedCache,
 	}
+}
+
+func (f *feedEventRepo) FindPullEventsWithTyp(ctx context.Context, typ string, uids []int64, timestamp, limit int64) ([]domain.FeedEvent, error) {
+	events, err := f.pullDao.FindPullEventListWithTyp(ctx, typ, uids, timestamp, limit)
+	if err != nil {
+		return nil, err
+	}
+	ans := make([]domain.FeedEvent, 0, len(events))
+	for _, e := range events {
+		ans = append(ans, convertToPullEventDomain(e))
+	}
+	return ans, nil
+}
+
+func (f *feedEventRepo) FindPushEventsWithTyp(ctx context.Context, typ string, uid, timestamp, limit int64) ([]domain.FeedEvent, error) {
+	events, err := f.pushDao.GetPushEventsWithTyp(ctx, typ, uid, timestamp, limit)
+	if err != nil {
+		return nil, err
+	}
+	ans := make([]domain.FeedEvent, 0, len(events))
+	for _, e := range events {
+		ans = append(ans, convertToPushEventDomain(e))
+	}
+	return ans, nil
 }
 
 func (f *feedEventRepo) SetFollowees(ctx context.Context, follower int64, followees []int64) error {

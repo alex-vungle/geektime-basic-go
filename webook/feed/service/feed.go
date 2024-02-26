@@ -81,7 +81,7 @@ func (f *feedService) GetFeedEventListV1(ctx context.Context, uid int64, timesta
 		return res[i].Ctime.Unix() > res[j].Ctime.Unix()
 	})
 	err := eg.Wait()
-	return res[:min[int](int(limit), len(res))], err
+	return res[:slice.Min[int]([]int{int(limit), len(res)})], err
 }
 
 func (f *feedService) GetFeedEventList(ctx context.Context, uid int64, timestamp, limit int64) ([]domain.FeedEvent, error) {
@@ -108,5 +108,5 @@ func (f *feedService) GetFeedEventList(ctx context.Context, uid int64, timestamp
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Ctime.Unix() > res[j].Ctime.Unix()
 	})
-	return res[:min[int](int(limit), len(res))], nil
+	return res[:slice.Min[int]([]int{int(limit), len(res)})], nil
 }

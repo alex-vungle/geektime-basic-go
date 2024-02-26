@@ -19,7 +19,8 @@ type ArticleEventHandler struct {
 
 const (
 	ArticleEventName = "article_event"
-	threshold        = 32
+	threshold        = 4
+	//threshold        = 32
 )
 
 func NewArticleEventHandler(repo repository.FeedEventRepo, client followv1.FollowServiceClient) Handler {
@@ -38,7 +39,7 @@ func (a *ArticleEventHandler) FindFeedEvents(ctx context.Context, uid, timestamp
 	events := make([]domain.FeedEvent, 0, limit*2)
 	// Push Event
 	eg.Go(func() error {
-		pushEvents, err := a.repo.FindPushEvents(ctx, uid, timestamp, limit)
+		pushEvents, err := a.repo.FindPushEventsWithTyp(ctx, ArticleEventName, uid, timestamp, limit)
 		if err != nil {
 			return err
 		}
@@ -61,7 +62,7 @@ func (a *ArticleEventHandler) FindFeedEvents(ctx context.Context, uid, timestamp
 		followeeIds := slice.Map(resp.FollowRelations, func(idx int, src *followv1.FollowRelation) int64 {
 			return src.Followee
 		})
-		pullEvents, err := a.repo.FindPullEvents(ctx, followeeIds, timestamp, limit)
+		pullEvents, err := a.repo.FindPullEventsWithTyp(ctx, ArticleEventName, followeeIds, timestamp, limit)
 		if err != nil {
 			return err
 		}
@@ -70,13 +71,17 @@ func (a *ArticleEventHandler) FindFeedEvents(ctx context.Context, uid, timestamp
 		mu.Unlock()
 		return nil
 	})
-
+	err := eg.Wait()
+	if err != nil {
+		return nil, err
+	}
 	// 获取拉模型事件
 	// 获取默认的关注列表
 	sort.Slice(events, func(i, j int) bool {
 		return events[i].Ctime.Unix() > events[j].Ctime.Unix()
 	})
-	return events[:min[int](int(limit), len(events))], nil
+
+	return events[:slice.Min[int]([]int{int(limit), len(events)})], nil
 }
 
 func (a *ArticleEventHandler) CreateFeedEvent(ctx context.Context, ext domain.ExtendFields) error {

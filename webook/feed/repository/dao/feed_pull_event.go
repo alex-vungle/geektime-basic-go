@@ -9,6 +9,7 @@ import (
 type FeedPullEventDAO interface {
 	CreatePullEvent(ctx context.Context, event FeedPullEvent) error
 	FindPullEventList(ctx context.Context, uids []int64, timestamp, limit int64) ([]FeedPullEvent, error)
+	FindPullEventListWithTyp(ctx context.Context, typ string, uids []int64, timestamp, limit int64) ([]FeedPullEvent, error)
 }
 
 type FeedPullEvent struct {
@@ -30,8 +31,20 @@ func NewFeedPullEventDAO(db *gorm.DB) FeedPullEventDAO {
 	}
 }
 
+func (f *feedPullEventDAO) FindPullEventListWithTyp(ctx context.Context, typ string, uids []int64, timestamp, limit int64) ([]FeedPullEvent, error) {
+	var events []FeedPullEvent
+	err := f.db.WithContext(ctx).
+		Where("uid in ?", uids).
+		Where("ctime < ?", timestamp).
+		Where("type = ?", typ).
+		Order("ctime desc").
+		Limit(int(limit)).
+		Find(&events).Error
+	return events, err
+}
+
 func (f *feedPullEventDAO) CreatePullEvent(ctx context.Context, event FeedPullEvent) error {
-	return f.db.WithContext(ctx).Create(event).Error
+	return f.db.WithContext(ctx).Create(&event).Error
 }
 
 func (f *feedPullEventDAO) FindPullEventList(ctx context.Context, uids []int64, timestamp, limit int64) ([]FeedPullEvent, error) {

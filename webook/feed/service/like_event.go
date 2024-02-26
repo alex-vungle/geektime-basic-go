@@ -16,13 +16,13 @@ type LikeEventHandler struct {
 }
 
 func NewLikeEventHandler(repo repository.FeedEventRepo) Handler {
-	return &FollowEventHandler{
+	return &LikeEventHandler{
 		repo: repo,
 	}
 }
 
 func (l *LikeEventHandler) FindFeedEvents(ctx context.Context, uid, timestamp, limit int64) ([]domain.FeedEvent, error) {
-	return l.repo.FindPushEvents(ctx, uid, timestamp, limit)
+	return l.repo.FindPushEventsWithTyp(ctx, LikeEventName, uid, timestamp, limit)
 }
 
 // CreateFeedEvent 中的 ext 里面至少需要三个 id

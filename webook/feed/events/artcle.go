@@ -7,6 +7,7 @@ import (
 	"gitee.com/geekbang/basic-go/webook/pkg/logger"
 	"gitee.com/geekbang/basic-go/webook/pkg/saramax"
 	"github.com/IBM/sarama"
+	"strconv"
 	"time"
 )
 
@@ -58,13 +59,10 @@ func (r *ArticleEventConsumer) Consume(msg *sarama.ConsumerMessage,
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	return r.svc.CreateFeedEvent(ctx, domain.FeedEvent{
-		User: domain.User{
-			ID: evt.uid,
-		},
 		Type: service.FollowEventName,
-		Ext: map[string]any{
-			"uid": evt.uid,
-			"aid": evt.aid,
+		Ext: map[string]string{
+			"uid": strconv.FormatInt(evt.uid, 10),
+			"aid": strconv.FormatInt(evt.uid, 10),
 		},
 	})
 

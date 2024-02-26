@@ -22,7 +22,7 @@ func NewFollowEventHandler(repo repository.FeedEventRepo) Handler {
 }
 
 func (f *FollowEventHandler) FindFeedEvents(ctx context.Context, uid, timestamp, limit int64) ([]domain.FeedEvent, error) {
-	return f.repo.FindPushEvents(ctx, uid, timestamp, limit)
+	return f.repo.FindPushEventsWithTyp(ctx, FollowEventName, uid, timestamp, limit)
 }
 
 // CreateFeedEvent 创建跟随方式
@@ -30,12 +30,12 @@ func (f *FollowEventHandler) FindFeedEvents(ctx context.Context, uid, timestamp,
 // follower 就是 A
 // followee 就是 B
 func (f *FollowEventHandler) CreateFeedEvent(ctx context.Context, ext domain.ExtendFields) error {
-	follower, err := ext.Get("follower").AsInt64()
+	followee, err := ext.Get("followee").AsInt64()
 	if err != nil {
 		return err
 	}
 	return f.repo.CreatePushEvents(ctx, []domain.FeedEvent{{
-		Uid:   follower,
+		Uid:   followee,
 		Type:  FollowEventName,
 		Ctime: time.Now(),
 		Ext:   ext,

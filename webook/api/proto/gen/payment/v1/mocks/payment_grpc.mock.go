@@ -40,6 +40,26 @@ func (m *MockWechatPaymentServiceClient) EXPECT() *MockWechatPaymentServiceClien
 	return m.recorder
 }
 
+// GetPayment mocks base method.
+func (m *MockWechatPaymentServiceClient) GetPayment(ctx context.Context, in *pmtv1.GetPaymentRequest, opts ...grpc.CallOption) (*pmtv1.GetPaymentResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetPayment", varargs...)
+	ret0, _ := ret[0].(*pmtv1.GetPaymentResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPayment indicates an expected call of GetPayment.
+func (mr *MockWechatPaymentServiceClientMockRecorder) GetPayment(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPayment", reflect.TypeOf((*MockWechatPaymentServiceClient)(nil).GetPayment), varargs...)
+}
+
 // NativePrePay mocks base method.
 func (m *MockWechatPaymentServiceClient) NativePrePay(ctx context.Context, in *pmtv1.PrePayRequest, opts ...grpc.CallOption) (*pmtv1.NativePrePayResponse, error) {
 	m.ctrl.T.Helper()
@@ -81,6 +101,21 @@ func NewMockWechatPaymentServiceServer(ctrl *gomock.Controller) *MockWechatPayme
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockWechatPaymentServiceServer) EXPECT() *MockWechatPaymentServiceServerMockRecorder {
 	return m.recorder
+}
+
+// GetPayment mocks base method.
+func (m *MockWechatPaymentServiceServer) GetPayment(arg0 context.Context, arg1 *pmtv1.GetPaymentRequest) (*pmtv1.GetPaymentResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPayment", arg0, arg1)
+	ret0, _ := ret[0].(*pmtv1.GetPaymentResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPayment indicates an expected call of GetPayment.
+func (mr *MockWechatPaymentServiceServerMockRecorder) GetPayment(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPayment", reflect.TypeOf((*MockWechatPaymentServiceServer)(nil).GetPayment), arg0, arg1)
 }
 
 // NativePrePay mocks base method.

@@ -45,16 +45,13 @@ func (f *FeedEventGrpcSvc) FindFeedEvents(ctx context.Context, request *feedv1.F
 }
 
 func (f *FeedEventGrpcSvc) convertToDomain(event *feedv1.FeedEvent) domain.FeedEvent {
-	ext := map[string]any{}
+	ext := map[string]string{}
 	_ = json.Unmarshal([]byte(event.Content), &ext)
 	return domain.FeedEvent{
 		ID:    event.Id,
 		Ctime: time.Unix(event.Ctime, 0),
-		User: domain.User{
-			ID: event.User.Id,
-		},
-		Type: event.GetType(),
-		Ext:  ext,
+		Type:  event.GetType(),
+		Ext:   ext,
 	}
 }
 
@@ -65,8 +62,5 @@ func (f *FeedEventGrpcSvc) convertToView(event domain.FeedEvent) *feedv1.FeedEve
 		Type:    event.Type,
 		Ctime:   event.Ctime.Unix(),
 		Content: string(val),
-		User: &feedv1.User{
-			Id: event.User.ID,
-		},
 	}
 }
