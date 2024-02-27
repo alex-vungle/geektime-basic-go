@@ -291,10 +291,10 @@ func (h *UserHandler) Profile(ctx *gin.Context,
 		}, err
 	}
 	type User struct {
-		Nickname string `json:"nickname"`
-		Email    string `json:"email"`
-		AboutMe  string `json:"aboutMe"`
-		Birthday string `json:"birthday"`
+		Nickname string
+		Email    string
+		AboutMe  string
+		Birthday string
 	}
 	return ginx.Result{
 		Data: User{

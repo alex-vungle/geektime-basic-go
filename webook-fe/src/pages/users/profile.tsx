@@ -13,7 +13,7 @@ function Page() {
         axios.get('/users/profile')
             .then((res) => res.data)
             .then((data) => {
-                setData(data)
+                setData(data.data)
                 setLoading(false)
             })
     }, [])
