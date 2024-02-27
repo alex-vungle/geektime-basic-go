@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="webook" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="basic-go" />
+    <working_directory value="$PROJECT_DIR$/webook" />
+    <parameters value="--config=config/dev.yaml" />
+    <kind value="PACKAGE" />
+    <package value="gitee.com/geekbang/basic-go/webook" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/webook/main.go" />
+    <method v="2" />
+  </configuration>
+</component>
