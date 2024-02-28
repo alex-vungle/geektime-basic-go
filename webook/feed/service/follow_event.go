@@ -4,6 +4,7 @@ import (
 	"context"
 	"gitee.com/geekbang/basic-go/webook/feed/domain"
 	"gitee.com/geekbang/basic-go/webook/feed/repository"
+	"time"
 )
 
 const (
@@ -21,7 +22,7 @@ func NewFollowEventHandler(repo repository.FeedEventRepo) Handler {
 }
 
 func (f *FollowEventHandler) FindFeedEvents(ctx context.Context, uid, timestamp, limit int64) ([]domain.FeedEvent, error) {
-	return f.repo.FindPushEvents(ctx, uid, timestamp, limit)
+	return f.repo.FindPushEventsWithTyp(ctx, FollowEventName, uid, timestamp, limit)
 }
 
 // CreateFeedEvent 创建跟随方式
@@ -33,11 +34,10 @@ func (f *FollowEventHandler) CreateFeedEvent(ctx context.Context, ext domain.Ext
 	if err != nil {
 		return err
 	}
-	return f.repo.CreatePushEvents(ctx, []domain.FeedEvent{
-		{
-			Uid:  followee,
-			Type: FollowEventName,
-			Ext:  ext,
-		},
-	})
+	return f.repo.CreatePushEvents(ctx, []domain.FeedEvent{{
+		Uid:   followee,
+		Type:  FollowEventName,
+		Ctime: time.Now(),
+		Ext:   ext,
+	}})
 }

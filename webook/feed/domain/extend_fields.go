@@ -14,7 +14,7 @@ func (f ExtendFields) Get(key string) ekit.AnyValue {
 	val, ok := f[key]
 	if !ok {
 		return ekit.AnyValue{
-			Err: fmt.Errorf("%w, key %s", errKeyNotFound, val),
+			Err: fmt.Errorf("%w, key %s", errKeyNotFound),
 		}
 	}
 	return ekit.AnyValue{Val: val}

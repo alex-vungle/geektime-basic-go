@@ -4,7 +4,7 @@
 //go:build !wireinject
 // +build !wireinject
 
-package feed
+package main
 
 import (
 	"gitee.com/geekbang/basic-go/webook/feed/events"

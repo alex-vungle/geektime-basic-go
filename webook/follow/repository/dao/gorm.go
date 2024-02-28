@@ -46,7 +46,8 @@ func (g *GORMFollowRelationDAO) UpdateStatus(ctx context.Context, followee int64
 func (g *GORMFollowRelationDAO) FollowRelationList(ctx context.Context,
 	follower, offset, limit int64) ([]FollowRelation, error) {
 	var res []FollowRelation
-	err := g.db.WithContext(ctx).
+	// 这样就达成了覆盖索引的效果
+	err := g.db.WithContext(ctx).Select("follower, followee").
 		// 这个查询要求我们要在 follower 上创建一个索引，或者 <follower, followee> 联合唯一索引
 		// 进一步考虑，将 status 也加入索引
 		Where("follower = ? AND status = ?", follower, FollowRelationStatusActive).
