@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="chat" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="basic-go" />
+    <working_directory value="$PROJECT_DIR$/websocket/chat" />
+    <kind value="PACKAGE" />
+    <package value="gitee.com/geekbang/basic-go/websocket/chat" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/websocket/chat/main.go" />
+    <method v="2" />
+  </configuration>
+</component>
