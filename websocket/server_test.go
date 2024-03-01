@@ -28,10 +28,11 @@ func TestServer(t *testing.T) {
 			ticker := time.NewTicker(time.Second * 3)
 			for now := range ticker.C {
 				// 写回时间戳
-				ws.Write(now.String())
+				ws.Write("响应：" + now.String())
 			}
 		}()
 	})
+	http.ListenAndServe(":8081", nil)
 }
 
 // Websocket 代表和客户端的 websocket 连接
@@ -44,7 +45,7 @@ func (w *Ws) ReadCycle() {
 		_, message, err := w.conn.ReadMessage()
 		if err != nil {
 			log.Println("接收 websocket 数据失败", err)
-			continue
+			return
 		}
 		log.Println("收到数据", string(message))
 	}
