@@ -28,6 +28,7 @@ require (
 	github.com/google/uuid v1.4.0
 	github.com/google/wire v0.5.0
 	github.com/gorilla/sessions v1.2.1
+	github.com/gorilla/websocket v1.5.1
 	github.com/gotomicro/redis-lock v0.0.3
 	github.com/lithammer/shortuuid/v4 v4.0.0
 	github.com/olivere/elastic/v7 v7.0.32
