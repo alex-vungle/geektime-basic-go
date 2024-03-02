@@ -44,6 +44,7 @@ func (g *GORMFollowRelationDAO) UpdateStatus(ctx context.Context, followee int64
 }
 
 func (g *GORMFollowRelationDAO) FollowRelationList(ctx context.Context,
+	// 可以考虑只查询 follower id，于是命中了覆盖索引
 	follower, offset, limit int64) ([]FollowRelation, error) {
 	var res []FollowRelation
 	err := g.db.WithContext(ctx).

@@ -24,6 +24,10 @@ services:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:
       - 9090:9090
+    command:
+      # 开启remote writer
+      - "--web.enable-remote-write-receiver"
+      - "--config.file=/etc/prometheus/prometheus.yml"
   zipkin:
     #    用的是不支持 Kafka 之类的简化版本
     image: openzipkin/zipkin-slim:2.24
