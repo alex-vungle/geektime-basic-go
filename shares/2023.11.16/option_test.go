@@ -29,6 +29,12 @@ func WithField2(field2 string) ComplicateStructOption {
 	}
 }
 
+func WithField3(field string) ComplicateStructOption {
+	return func(c *ComplicateStruct) {
+		c.field3 = field
+	}
+}
+
 func TestOption(t *testing.T) {
 	c := NewComplicateStruct("这是必传",
 		WithField2("Field2自定义的值"))

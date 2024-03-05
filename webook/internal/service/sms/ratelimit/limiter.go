@@ -35,6 +35,7 @@ func (r *RateLimitSMSService) Send(ctx context.Context, tplId string, args []str
 	return r.svc.Send(ctx, tplId, args, numbers...)
 }
 
+// NewRateLimitSMSService 我也是面向接口编程
 func NewRateLimitSMSService(svc sms.Service,
 	l limiter.Limiter) *RateLimitSMSService {
 	return &RateLimitSMSService{

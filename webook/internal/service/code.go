@@ -17,6 +17,8 @@ type CodeService interface {
 		biz, phone, inputCode string) (bool, error)
 }
 
+// 面向接口编程，绝对不会被具体实现影响
+// 随便你换实现
 type codeService struct {
 	repo repository.CodeRepository
 	sms  sms.Service
@@ -37,7 +39,19 @@ func (svc *codeService) Send(ctx context.Context, biz, phone string) error {
 		return err
 	}
 	const codeTplId = "1877556"
+	// 假如说你没有接口，
+	// 没有接口，你替换实现的时候，就很难替换阿里云，
+	// 破坏了面向接口编程，依赖于实现细节（阿里云要 map，而腾讯云要切片）
+	//args := map[string]string{
+	//	"code": code,
+	//}
 	return svc.sms.Send(ctx, codeTplId, []string{code}, phone)
+
+	// 这种形态下，你依旧保持了面向接口编程，不依赖于细节
+	//return svc.sms.SendV22(ctx, codeTplId,
+	//	[]sms.NamedArg{{Name: "code", Value: code}}, phone)
+
+	//
 }
 
 func (svc *codeService) Verify(ctx context.Context,

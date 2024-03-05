@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"testing"
 )
 
 type Factory func() Service
@@ -27,7 +28,7 @@ func (f *AbstractFactory) CreatePart1() {
 }
 
 func (f *AbstractFactory) CreatePart2() {
-
+	log.Println("这是 AbstractFactory 的 CreatePart2")
 }
 
 type MyFactory struct {
@@ -36,6 +37,11 @@ type MyFactory struct {
 
 func (f *MyFactory) CreatePart2() {
 	log.Println("这是 MyFactory 的 CreatePart2")
+}
+
+func TestMyFactory(t *testing.T) {
+	f := &MyFactory{}
+	f.Create()
 }
 
 type AbstractFactoryV1 struct {

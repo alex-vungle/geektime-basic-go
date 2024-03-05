@@ -11,6 +11,10 @@ type SMSService struct {
 	key []byte
 }
 
+func NewSMSService(svc sms.Service, key []byte) *SMSService {
+	return &SMSService{svc: svc, key: key}
+}
+
 func (s *SMSService) Send(ctx context.Context, tplToken string, args []string, numbers ...string) error {
 	var claims SMSClaims
 	_, err := jwt.ParseWithClaims(tplToken, &claims, func(token *jwt.Token) (interface{}, error) {

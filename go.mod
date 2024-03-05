@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.1
 	github.com/IBM/sarama v1.42.1
+	github.com/aliyun/alibaba-cloud-sdk-go v1.62.687
 	github.com/aliyun/aliyun-tablestore-go-sdk v1.7.14
 	github.com/aws/aws-sdk-go v1.47.2
 	github.com/bwmarrin/snowflake v0.3.0
@@ -152,6 +153,7 @@ require (
 	github.com/nats-io/nats.go v1.30.2 // indirect
 	github.com/nats-io/nkeys v0.4.5 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
+	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect

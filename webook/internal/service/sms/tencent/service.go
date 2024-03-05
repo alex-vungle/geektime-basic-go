@@ -3,6 +3,7 @@ package tencent
 import (
 	"context"
 	"fmt"
+	sms2 "gitee.com/geekbang/basic-go/webook/internal/service/sms"
 	"github.com/ecodeclub/ekit"
 	"github.com/ecodeclub/ekit/slice"
 	sms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111"
@@ -58,4 +59,16 @@ func NewService(client *sms.Client, appId string, signName string) *Service {
 		appId:    &appId,
 		signName: &signName,
 	}
+}
+
+func (s *Service) SendV11(ctx context.Context, tplId string, args any, numbers ...string) error {
+	return s.Send(ctx, tplId, args.([]string), numbers...)
+}
+
+func (s *Service) SendV22(ctx context.Context, tplId string, args []sms2.NamedArg, numbers ...string) error {
+	// 转切片
+	newArgs := slice.Map(args, func(idx int, src sms2.NamedArg) string {
+		return src.Value
+	})
+	return s.Send(ctx, tplId, newArgs, numbers...)
 }
