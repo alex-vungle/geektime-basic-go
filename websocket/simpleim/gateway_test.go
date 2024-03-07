@@ -3,6 +3,7 @@ package simpleim
 import (
 	"github.com/IBM/sarama"
 	"github.com/ecodeclub/ekit/syncx"
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -47,6 +48,7 @@ func (g *GatewayTestSuite) startGateway(instance, addr string) error {
 		svc: &IMService{
 			producer: producer,
 		},
+		upgrader:   &websocket.Upgrader{},
 		client:     g.client,
 		instanceId: instance,
 	}
