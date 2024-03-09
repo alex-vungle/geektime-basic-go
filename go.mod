@@ -13,7 +13,7 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/cloopen/go-sms-sdk v0.0.0-20200702015230-7c5619f80c9e
 	github.com/dlclark/regexp2 v1.10.0
-	github.com/ecodeclub/ekit v0.0.8-0.20240101145605-5a235048be44
+	github.com/ecodeclub/ekit v0.0.9-0.20240305070625-e1ba7d0a6b11
 	github.com/elastic/go-elasticsearch/v8 v8.12.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-contrib/cors v1.4.0

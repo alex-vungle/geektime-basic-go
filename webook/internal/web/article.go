@@ -28,6 +28,7 @@ type ArticleHandler struct {
 }
 
 func NewArticleHandler(svc service.ArticleService,
+	// 你可以注入真的 grpc 客户端，也可以注入那个本地调用伪装的。
 	intrSvc intrv1.InteractiveServiceClient,
 	l logger.LoggerV1) *ArticleHandler {
 	return &ArticleHandler{
