@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go v1.47.2
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/dlclark/regexp2 v1.10.0
-	github.com/ecodeclub/ekit v0.0.8-0.20240101145605-5a235048be44
+	github.com/ecodeclub/ekit v0.0.9-0.20240305070625-e1ba7d0a6b11
 	github.com/elastic/go-elasticsearch/v8 v8.12.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-contrib/cors v1.5.0

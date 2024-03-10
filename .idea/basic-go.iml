@@ -10,7 +10,19 @@
     </buildTags>
   </component>
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.idea/dataSources" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea/fileTemplates" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea/inspectionProfiles" />
+      <excludeFolder url="file://$MODULE_DIR$/webook/im/openim-docker/_output" />
+      <excludeFolder url="file://$MODULE_DIR$/webook/im/openim-docker/components" />
+      <excludeFolder url="file://$MODULE_DIR$/webook/im/openim-docker/openim-chat/config" />
+      <excludeFolder url="file://$MODULE_DIR$/webook/im/openim-docker/openim-chat/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/webook/im/openim-docker/openim-server/_output" />
+      <excludeFolder url="file://$MODULE_DIR$/webook/im/openim-docker/openim-server/config" />
+      <excludeFolder url="file://$MODULE_DIR$/webook/im/openim-docker/openim-server/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/webook/payment/config/cert" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
