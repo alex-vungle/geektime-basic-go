@@ -112,7 +112,25 @@ func (c *CachedInteractiveRepository) IncrLike(ctx context.Context, biz string, 
 	if err != nil {
 		return err
 	}
-	return c.cache.IncrLikeCntIfPresent(ctx, biz, id)
+	// 这两个操作可以考虑合并为一个操作
+	err = c.cache.IncrLikeCntIfPresent(ctx, biz, id)
+	if err != nil {
+		return err
+	}
+	err = c.cache.IncrRankingIfPresent(ctx, biz, id)
+	if err == cache.RankingUpdateErr {
+		// 这是一个可选的，跟你的模型有关
+		val, err := c.dao.Get(ctx, biz, id)
+		if err != nil {
+			return err
+		}
+		return c.cache.SetRankingScore(ctx, biz, id, val.LikeCnt)
+	}
+	return err
+}
+
+func (c *CachedInteractiveRepository) LikeTop(ctx context.Context, biz string) ([]domain.Interactive, error) {
+	return c.cache.LikeTop(ctx, biz)
 }
 
 func (c *CachedInteractiveRepository) DecrLike(ctx context.Context, biz string, id int64, uid int64) error {
