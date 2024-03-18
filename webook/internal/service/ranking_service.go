@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=./ranking_service.go -package=svcmocks -destination=./mocks/ranking_service.mock.go RankingService
 type RankingService interface {
 	// TopN 前 100 的
 	TopN(ctx context.Context) error

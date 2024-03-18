@@ -26,9 +26,16 @@ func (dao *GORMJobDAO) Preempt(ctx context.Context) (Job, error) {
 	for {
 		var j Job
 		now := time.Now().UnixMilli()
+		// 假设说续约是
+
 		// 作业：这里是缺少找到续约失败的 JOB 出来执行
-		err := db.Where("status = ? AND next_time <?",
-			jobStatusWaiting, now).
+		// 续约失败就是本来应该续约
+		// 而如果续约成功了，那么肯定 utime 必然在一个范围内
+		// 比如说，续约是一分钟，那么 utime 距离当下，必然在一分钟内
+		// 我们可以说连续 utime < 当前三分钟前，就认为续约失败了
+		ddl := now - (time.Minute * 3).Milliseconds()
+		err := db.Where("(status = ? AND next_time <?) OR (status = ? AND utime < ?)",
+			jobStatusWaiting, now, jobStatusRunning, ddl).
 			First(&j).Error
 		if err != nil {
 			return j, err
