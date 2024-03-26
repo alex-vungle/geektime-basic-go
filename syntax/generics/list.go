@@ -14,6 +14,10 @@ func (l *LinkedListV1[T]) Add(index int, val T) {
 
 }
 
+func (l *LinkedListV1[T]) Get(index int) *T {
+	return new(T)
+}
+
 type nodeV1[T any] struct {
 	data T
 }

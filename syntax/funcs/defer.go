@@ -47,6 +47,7 @@ func DeferReturn() int {
 	defer func() {
 		a = 1
 	}()
+	// 在这里，你的返回值已经放过去了栈上，也就是复制了一个 a
 	return a
 }
 

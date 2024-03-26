@@ -15,6 +15,8 @@ func DeferClosureLoopV1() {
 	for i := 0; i < 10; i++ {
 		fmt.Printf("循环 %p \n", &i)
 		defer func() {
+			// 很多人会预期打出 9 8 7 6 ... 1
+			// 最终都是 10 ... 10
 			fmt.Printf("%p \n", &i)
 			println(i)
 		}()
@@ -34,6 +36,7 @@ func DeferClosureLoopV2() {
 
 func DeferClosureLoopV3() {
 	for i := 0; i < 10; i++ {
+		// j 是局部变量。每次循环新建一个
 		j := i
 		fmt.Printf("循环 %p, %p \n", &i, &j)
 		defer func() {

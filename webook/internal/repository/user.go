@@ -83,6 +83,13 @@ func (repo *CachedUserRepository) Create(ctx context.Context, u domain.User) err
 
 func (repo *CachedUserRepository) FindByEmail(ctx context.Context, email string) (domain.User, error) {
 	u, err := repo.dao.FindByEmail(ctx, email)
+
+	// 可以加监控，监控缓存击穿问题
+	if err == dao.ErrRecordNotFound {
+		// 击穿了
+		// 你想加 trace, 相加 prometheus
+	}
+
 	if err != nil {
 		return domain.User{}, err
 	}
