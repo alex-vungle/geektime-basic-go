@@ -57,6 +57,7 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 	ug.POST("/edit", ginx.WrapBodyAndClaims(h.Edit))
 	// GET /users/profile
 	ug.GET("/profile", ginx.WrapClaims(h.Profile))
+	ug.GET("/profile", h.ProfileSess)
 	ug.GET("/refresh_token", h.RefreshToken)
 
 	// 手机验证码登录相关功能
@@ -346,4 +347,33 @@ func (h *UserHandler) LogoutJWT(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, ginx.Result{Msg: "退出登录成功"})
+}
+
+// ProfileSess 使用 session 机制的 Profile
+func (h *UserHandler) ProfileSess(ctx *gin.Context) {
+	idVal, _ := ctx.Get("userId")
+	uid, ok := idVal.(int64)
+	// 绝大部分情况下，是因为代码出了问题
+	if !ok {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	u, err := h.svc.FindById(ctx, uid)
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+	}
+	type User struct {
+		Nickname string
+		Email    string
+		AboutMe  string
+		Birthday string
+	}
+	ctx.JSON(http.StatusOK, ginx.Result{
+		Data: User{
+			Nickname: u.Nickname,
+			Email:    u.Email,
+			AboutMe:  u.AboutMe,
+			Birthday: u.Birthday.Format(time.DateOnly),
+		},
+	})
 }
