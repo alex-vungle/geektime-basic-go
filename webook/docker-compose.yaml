@@ -122,3 +122,7 @@ services:
     volumes:
       - ./script/canal/webook/instance.properties:/home/admin/canal-server/conf/webook/instance.properties
       - ./script/canal/canal.properties:/home/admin/canal-server/conf/canal.properties
+  consul:
+    image: hashicorp/consul:1.18
+    ports:
+      - 8500:8500
