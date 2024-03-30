@@ -10,6 +10,10 @@ type Article struct {
 	Status  ArticleStatus
 	Ctime   time.Time
 	Utime   time.Time
+	// 12 周作业
+	// 这种做法就是把点赞收藏的数据，看做是 Article 本身的一部分
+	//
+	Intr Interactive
 }
 
 func (a Article) Abstract() string {
