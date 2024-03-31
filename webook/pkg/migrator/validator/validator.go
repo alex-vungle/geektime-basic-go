@@ -66,6 +66,82 @@ func (v *Validator[T]) Validate(ctx context.Context) error {
 	return eg.Wait()
 }
 
+// baseToTarget 批量写法，第十三周答案
+func (v *Validator[T]) baseToTargetV1(ctx context.Context) error {
+	offset := 0
+	// 假设说一次 100 条
+	const limit = 100
+	for {
+		var srcs []T
+		// 直接取出来一批
+		dbCtx, cancel := context.WithTimeout(ctx, time.Second)
+		err := v.base.WithContext(dbCtx).
+			Order("id").
+			Where("utime >= ?", v.utime).
+			Offset(offset).Limit(limit).Find(&srcs).Error
+		cancel()
+		switch err {
+		// 在 find 里面其实不会有这个错误
+		//case gorm.ErrRecordNotFound:
+		case context.Canceled, context.DeadlineExceeded:
+			// 超时你可以继续，也可以返回。一般超时都是因为数据库有了问题
+			return err
+		case nil:
+			if len(srcs) == 0 {
+				// 结束，没有数据
+				return nil
+			}
+			err = v.dstDiffV1(srcs)
+			if err != nil {
+				// 直接中断，你也可以考虑继续重试
+				return err
+			}
+		default:
+			v.l.Error("src => dst 查询源表失败", logger.Error(err))
+		}
+		if len(srcs) < limit {
+			// 没有数据了
+			return nil
+		}
+		offset += len(srcs)
+	}
+}
+
+func (v *Validator[T]) dstDiffV1(srcs []T) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	ids := slice.Map(srcs, func(idx int, src T) int64 {
+		return src.ID()
+	})
+	var dsts []T
+	err := v.target.WithContext(ctx).Where("id IN ?", ids).
+		Find(&dsts).Error
+	// 让调用者来决定
+	if err != nil {
+		return err
+	}
+	dstMap := v.toMap(dsts)
+	for _, src := range srcs {
+		dst, ok := dstMap[src.ID()]
+		if !ok {
+			v.notify(src.ID(), events2.InconsistentEventTypeTargetMissing)
+			continue
+		}
+		if !src.CompareTo(dst) {
+			v.notify(src.ID(), events2.InconsistentEventTypeNEQ)
+		}
+	}
+	return nil
+}
+
+func (v *Validator[T]) toMap(data []T) map[int64]T {
+	res := make(map[int64]T, len(data))
+	for _, val := range data {
+		res[val.ID()] = val
+	}
+	return res
+}
+
 // baseToTarget 从 first 到 second 的验证
 func (v *Validator[T]) baseToTarget(ctx context.Context) error {
 	offset := 0
