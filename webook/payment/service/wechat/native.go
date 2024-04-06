@@ -185,6 +185,7 @@ func (n *NativePaymentService) updateByTxnV1(ctx context.Context, txn *payments.
 	err1 := n.producer.ProducePaymentEvent(ctx, evt)
 	if err1 != nil {
 		// 失败的时候，我们并没有将本地消息表标记为失败，是因为我们后面还想继续重试
+		// msg 表里面有一条处于 StatusInit 的数据
 		n.l.Error("发送支付事件失败", logger.Error(err1),
 			logger.String("biz_trade_no", *txn.OutTradeNo))
 		return nil
@@ -194,6 +195,8 @@ func (n *NativePaymentService) updateByTxnV1(ctx context.Context, txn *payments.
 	// 这里我认为即便是本地消息表更新失败，也不是业务失败
 	err1 = n.msgRepo.MarkSuccess(ctx, msgId)
 	if err1 != nil {
+		// 没有把 msg 标记为发送成功
+		// 消息队列里面会有至少两条消息
 		n.l.Error("将本地消息表标记为成功操作失败", logger.Error(err1),
 			logger.String("biz_trade_no", *txn.OutTradeNo))
 	}

@@ -48,5 +48,6 @@ func NewLocalMsgGORMRepository(db *gorm.DB) *LocalMsgGORMRepository {
 func (l *LocalMsgGORMRepository) AddMsg(ctx context.Context, content string) (int64, error) {
 	return l.dao.AddMsg(ctx, dao.Msg{
 		Content: content,
+		Status:  dao.MsgStatusInit,
 	})
 }

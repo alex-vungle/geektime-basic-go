@@ -33,6 +33,7 @@ func (l LocalMsgResendJob) Run() error {
 	for {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		// 批量操作可以提高性能
+		// 找出初始化状态的 msg
 		msgs, err := l.repo.FindInitMsg(ctx, offset, limit)
 		cancel()
 		if err != nil {
@@ -47,6 +48,7 @@ func (l LocalMsgResendJob) Run() error {
 			}
 
 			ctx, cancel = context.WithTimeout(context.Background(), time.Second*3)
+			// 消费者那边一定要做到幂等
 			err = l.producer.ProducePaymentEvent(ctx, evt)
 			if err != nil {
 				// 要判定一下是不是不值得重试了
@@ -55,11 +57,11 @@ func (l LocalMsgResendJob) Run() error {
 				if msg.Ctime.Add(l.threshold).Before(time.Now()) {
 					err = l.repo.MarkFailed(ctx, msg.Id)
 					if err != nil {
-						// 记录日志
+						// 记录日志，多半是需要人手工处理的
 					}
 				}
 			} else {
-				err = l.repo.MarkFailed(ctx, msg.Id)
+				err = l.repo.MarkSuccess(ctx, msg.Id)
 				if err != nil {
 					// 记录日志
 				}

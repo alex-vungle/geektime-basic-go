@@ -3,16 +3,26 @@ package repository
 import (
 	"context"
 	"gitee.com/geekbang/basic-go/webook/account/domain"
+	"gitee.com/geekbang/basic-go/webook/account/repository/cache"
 	"gitee.com/geekbang/basic-go/webook/account/repository/dao"
 	"time"
 )
 
 type accountRepository struct {
-	dao dao.AccountDAO
+	dao   dao.AccountDAO
+	cache cache.Cache
 }
 
-func NewAccountRepository(dao dao.AccountDAO) AccountRepository {
-	return &accountRepository{dao: dao}
+func NewAccountRepository(dao dao.AccountDAO, cache cache.Cache) *accountRepository {
+	return &accountRepository{dao: dao, cache: cache}
+}
+
+func (a *accountRepository) CheckUnique(ctx context.Context, c domain.Credit) error {
+	return a.cache.GetUnique(ctx, c)
+}
+
+func (a *accountRepository) SetUnique(ctx context.Context, c domain.Credit) error {
+	return a.cache.SetUnique(ctx, c)
 }
 
 func (a *accountRepository) AddCredit(ctx context.Context, c domain.Credit) error {

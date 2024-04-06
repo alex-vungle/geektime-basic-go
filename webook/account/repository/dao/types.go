@@ -31,11 +31,13 @@ type AccountActivity struct {
 	Id  int64 `gorm:"primaryKey,autoIncrement"`
 	Uid int64
 
-	Biz   string `gorm:"index:biz_type_id"`
-	BizId int64  `gorm:"index:biz_type_id"`
+	// 在 biz, biz_id, account 和 account_id 上创建一个联合唯一索引
+	// 这样可以确保记账的时候不会重复记账
+	Biz   string `gorm:"uniqueIndex:biz_type_id"`
+	BizId int64  `gorm:"uniqueIndex:biz_type_id"`
 
-	Account     int64 `gorm:"index:account_type"`
-	AccountType uint8 `gorm:"index:account_type"`
+	Account     int64 `gorm:"index:account_type;uniqueIndex:biz_type_id"`
+	AccountType uint8 `gorm:"index:account_type;uniqueIndex:biz_type_id"`
 
 	// TYPE 入账还是出账
 	Amount   int64

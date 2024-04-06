@@ -145,13 +145,14 @@ func (w *Picker) PickV1(info balancer.PickInfo) (balancer.PickResult, error) {
 		Done: func(info balancer.DoneInfo) {
 			res.mutex.Lock()
 			defer res.mutex.Unlock()
-			if info.Err != nil && res.efficientWeight == 0 {
+
+			if info.Err != nil && res.efficientWeight == 1 {
 				return
 			}
 			// MaxUint32 可以替换为你认为的最大值。
 			// 例如说你预期节点的权重是在 100 - 200 之间
 			// 那么你可以设置经过动态调整之后的权重不会超过 500。
-			if info.Err == nil && res.efficientWeight == math.MaxUint32 {
+			if info.Err == nil && res.efficientWeight >= 500 {
 				return
 			}
 			if info.Err != nil {
@@ -195,9 +196,6 @@ func (w *Picker) PickV2(info balancer.PickInfo) (balancer.PickResult, error) {
 			// MaxUint32 可以替换为你认为的最大值。
 			// 例如说你预期节点的权重是在 100 - 200 之间
 			// 那么你可以设置经过动态调整之后的权重不会超过 500。
-			if info.Err == nil && res.efficientWeight == math.MaxUint32 {
-				return
-			}
 			switch info.Err {
 			case nil:
 				if res.efficientWeight == math.MaxUint32 {
@@ -207,7 +205,7 @@ func (w *Picker) PickV2(info balancer.PickInfo) (balancer.PickResult, error) {
 				res.efficientWeight++
 			case context.DeadlineExceeded:
 				// 超时可以考虑动态调整。
-				// 比如说第一次超时是降低 1，第二次连续超时是降低到 2
+				// 比如说第一次超时是降低 1，第二次连续超时是降低 2
 				res.efficientWeight = res.efficientWeight - 10
 			default:
 				// 检测服务端的错误
