@@ -3,6 +3,7 @@ package wrr
 import (
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
+	"math"
 	"sync"
 )
 
@@ -113,13 +114,60 @@ func (p *Picker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 			// 3. 降级呢？
 		},
 	}, nil
+}
 
+// PickV1 十五周作业
+func (w *Picker) PickV1(info balancer.PickInfo) (balancer.PickResult, error) {
+	if len(w.conns) == 0 {
+		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable
+	}
+	var totalWeight int
+	var res *weightConn
+	//w.mutex.Lock()
+	//defer w.mutex.Unlock()
+	for _, c := range w.conns {
+		c.mutex.Lock()
+		totalWeight = totalWeight + c.efficientWeight
+		c.currentWeight = c.currentWeight + c.efficientWeight
+		if res == nil || res.currentWeight < c.currentWeight {
+			res = c
+		}
+		c.mutex.Unlock()
+	}
+	res.mutex.Lock()
+	res.currentWeight = res.currentWeight - totalWeight
+	res.mutex.Unlock()
+	return balancer.PickResult{
+		SubConn: res.SubConn,
+		Done: func(info balancer.DoneInfo) {
+			res.mutex.Lock()
+			defer res.mutex.Unlock()
+			if info.Err != nil && res.efficientWeight == 0 {
+				return
+			}
+			// MaxUint32 可以替换为你认为的最大值。
+			// 例如说你预期节点的权重是在 100 - 200 之间
+			// 那么你可以设置经过动态调整之后的权重不会超过 500。
+			if info.Err == nil && res.efficientWeight == math.MaxUint32 {
+				return
+			}
+			if info.Err != nil {
+				res.efficientWeight--
+			} else {
+				res.efficientWeight++
+			}
+		},
+	}, nil
 }
 
 type weightConn struct {
 	balancer.SubConn
-	weight        int
-	currentWeight int
+
+	mutex sync.Mutex
+
+	weight          int
+	currentWeight   int
+	efficientWeight int
 
 	// 可以用来标记不可用（比如说熔断了）
 	available bool
