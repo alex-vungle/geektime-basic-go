@@ -341,6 +341,13 @@ func (h *UserHandler) RefreshToken(ctx *gin.Context) {
 }
 
 func (h *UserHandler) LogoutJWT(ctx *gin.Context) {
+
+	//if(在布隆过滤器里面) {
+	//	// 进一步判定是不是退出登录了
+	//} else {
+	//	// 肯定没退出登录
+	//}
+
 	err := h.ClearToken(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{Code: 5, Msg: "系统错误"})

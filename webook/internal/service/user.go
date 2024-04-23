@@ -74,6 +74,14 @@ func (svc *userService) FindById(ctx context.Context,
 	return svc.repo.FindById(ctx, uid)
 }
 
+// FindOrCreateTDD 1. 当你用 TDD 来实现这个方法的时候
+// 第一个用例，你可以说，直接找到，phone 对应的用户存在。然后你写代码，确保通过 —— 这个阶段，你的方法可能叫 FindByPhone
+// 从第一个用例衍生出来第二个用例，我的 phone 并不存在，然后创建 FindOrCreateByPhone
+// 从第二个用例，结合并发，衍生出来第三个用户，大家发现同一个 phone 不存在，大家都创建。然后你写代码
+//func (svc *userService) FindOrCreateTDD(ctx context.Context, phone string) (domain.User, error) {
+//
+//}
+
 func (svc *userService) FindOrCreate(ctx context.Context, phone string) (domain.User, error) {
 	// 先找一下，我们认为，大部分用户是已经存在的用户
 	// 大部分都是老用户

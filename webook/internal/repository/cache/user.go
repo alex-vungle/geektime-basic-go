@@ -73,6 +73,12 @@ func NewUserCache(cmd redis.Cmdable) UserCache {
 	}
 }
 
+func (c *RedisUserCache) IsLogoutBF(ctx context.Context, id int64) (bool, error) {
+	// 是否已经退出登录
+	// 考虑假阳性的问题，你就再次调用 Redis 检测 session（token） 是不是过期了
+	return c.cmd.BFExists(ctx, "logout_users", id).Result()
+}
+
 // 一定不要自己去初始化你需要的东西，让外面传进来
 //func NewUserCacheV1(addr string) *RedisUserCache {
 //	cmd := redis.NewClient(&redis.Options{Addr: addr})

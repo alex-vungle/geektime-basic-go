@@ -23,6 +23,7 @@ func TestSyncProducer(t *testing.T) {
 		_, _, err = producer.SendMessage(&sarama.ProducerMessage{
 			Topic: "test_topic",
 			Value: sarama.StringEncoder("这是一条消息"),
+			//Key: 哈希类的记得传这个，一般就是你的业务 ID，外键
 			// 会在生产者和消费者之间传递的
 			Headers: []sarama.RecordHeader{
 				{

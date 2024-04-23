@@ -88,6 +88,20 @@ func (c ConsumerHandler) ConsumeClaimV1(session sarama.ConsumerGroupSession,
 	msgs := claim.Messages()
 	for msg := range msgs {
 		log.Println(string(msg.Value))
+		// 延迟消息
+		// 时间戳
+		duration := time.Now().Sub(msg.Timestamp)
+		// duration 就是这个消息已经发出来多久了
+		// 假定说固定延迟 30 分钟
+		sleepTime := time.Minute*30 - duration
+		// 这种不同分区不同睡眠时间
+		// sleepTime := time.Minute * time.Duration( msg.Partition + 1)  -duration
+		if sleepTime > 0 {
+			time.Sleep(sleepTime)
+		}
+
+		// 在这里消费
+
 		session.MarkMessage(msg, "")
 	}
 	return nil

@@ -39,7 +39,7 @@ func (c *Callbacks) Initialize(db *gorm.DB) error {
 		return err
 	}
 
-	err = db.Callback().Query().Before("*").
+	err = db.Callback().Raw().Before("*").
 		Register("prometheus_raw_before", c.Before())
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func (c *Callbacks) Initialize(db *gorm.DB) error {
 		return err
 	}
 
-	err = db.Callback().Update().After("*").
+	err = db.Callback().Delete().After("*").
 		Register("prometheus_delete_after", c.After("DELETE"))
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func (c *Callbacks) Initialize(db *gorm.DB) error {
 		return err
 	}
 
-	err = db.Callback().Update().After("*").
+	err = db.Callback().Row().After("*").
 		Register("prometheus_row_after", c.After("ROW"))
 	return err
 }
