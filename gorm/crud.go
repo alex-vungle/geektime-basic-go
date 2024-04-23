@@ -1,8 +1,11 @@
 package main
 
 import (
+	"gitee.com/geekbang/basic-go/webook/pkg/logger"
+	"go.uber.org/zap"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	glogger "gorm.io/gorm/logger"
 )
 
 type Product struct {
@@ -12,12 +15,19 @@ type Product struct {
 }
 
 func main() {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	zl, _ := zap.NewDevelopment()
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{
+		Logger: glogger.New(goormLoggerFunc(logger.NewZapLogger(zl).Debug), glogger.Config{
+			// 慢查询
+			SlowThreshold: 0,
+			LogLevel:      glogger.Info,
+		}),
+	})
 	if err != nil {
 		panic("failed to connect database")
 	}
 
-	db = db.Debug()
+	//db = db.Debug()
 
 	// 迁移 schema
 	// 初始化你的表结构
@@ -41,8 +51,16 @@ func main() {
 	// Delete - 删除 product
 	db.Delete(&product, 1)
 
+	err = db.Raw("SELECT * FROM `products`").First(&product).Error
+
 	// 增删改
 	//db.Exec("UPDATE")
 
 	//res := db.Raw("SELECT").Rows()
+}
+
+type goormLoggerFunc func(msg string, fields ...logger.Field)
+
+func (g goormLoggerFunc) Printf(s string, i ...interface{}) {
+	g(s, logger.Field{Key: "args", Val: i})
 }

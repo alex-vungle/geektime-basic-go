@@ -12,7 +12,7 @@ import (
 type InteractiveRepository interface {
 	IncrReadCnt(ctx context.Context, biz string, bizId int64) error
 	// BatchIncrReadCnt biz 和 bizId 长度必须一致
-	//BatchIncrReadCnt(ctx context.Context, biz []string, bizId []int64) error
+	BatchIncrReadCnt(ctx context.Context, biz []string, bizId []int64) error
 	IncrLike(ctx context.Context, biz string, id int64, uid int64) error
 	DecrLike(ctx context.Context, biz string, id int64, uid int64) error
 	AddCollectionItem(ctx context.Context, biz string, id int64, cid int64, uid int64) error
@@ -141,21 +141,21 @@ func (c *CachedInteractiveRepository) DecrLike(ctx context.Context, biz string, 
 	return c.cache.DecrLikeCntIfPresent(ctx, biz, id)
 }
 
-//func (c *CachedInteractiveRepository) BatchIncrReadCnt(ctx context.Context, biz []string, bizId []int64) error {
-//	err := c.dao.BatchIncrReadCnt(ctx, biz, bizId)
-//	if err != nil {
-//		return err
-//	}
-//	go func() {
-//		for i := 0; i < len(biz); i++ {
-//			er := c.cache.IncrReadCntIfPresent(ctx, biz[i], bizId[i])
-//			if er != nil {
-//				// 记录日志
-//			}
-//		}
-//	}()
-//	return nil
-//}
+func (c *CachedInteractiveRepository) BatchIncrReadCnt(ctx context.Context, biz []string, bizId []int64) error {
+	err := c.dao.BatchIncrReadCnt(ctx, biz, bizId)
+	if err != nil {
+		return err
+	}
+	go func() {
+		for i := 0; i < len(biz); i++ {
+			er := c.cache.IncrReadCntIfPresent(ctx, biz[i], bizId[i])
+			if er != nil {
+				// 记录日志
+			}
+		}
+	}()
+	return nil
+}
 
 func (c *CachedInteractiveRepository) IncrReadCnt(ctx context.Context, biz string, bizId int64) error {
 	err := c.dao.IncrReadCnt(ctx, biz, bizId)

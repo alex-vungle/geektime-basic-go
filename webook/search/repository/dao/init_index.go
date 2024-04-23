@@ -15,6 +15,10 @@ var (
 	articleIndex string
 	//go:embed tags_index.json
 	tagIndex string
+	//go:embed like_index.json
+	likeIndex string
+	//go:embed collect_index.json
+	collectIndex string
 )
 
 // InitES 创建索引
@@ -31,6 +35,12 @@ func InitES(client *elastic.Client) error {
 	})
 	eg.Go(func() error {
 		return tryCreateIndex(ctx, client, TagIndexName, articleIndex)
+	})
+	eg.Go(func() error {
+		return tryCreateIndex(ctx, client, LikeIndexName, likeIndex)
+	})
+	eg.Go(func() error {
+		return tryCreateIndex(ctx, client, CollectIndexName, collectIndex)
 	})
 
 	return eg.Wait()

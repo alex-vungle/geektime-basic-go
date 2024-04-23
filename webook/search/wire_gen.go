@@ -37,7 +37,8 @@ func Init() *App {
 	saramaClient := ioc.InitKafka()
 	articleConsumer := events.NewArticleConsumer(saramaClient, loggerV1, syncService)
 	userConsumer := events.NewUserConsumer(saramaClient, loggerV1, syncService)
-	v := ioc.NewConsumers(articleConsumer, userConsumer)
+	interactiveConsumer := events.NewInteractiveConsumer(saramaClient, loggerV1, syncService)
+	v := ioc.NewConsumers(articleConsumer, userConsumer, interactiveConsumer)
 	app := &App{
 		server:    server,
 		consumers: v,

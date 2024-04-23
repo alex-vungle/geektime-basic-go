@@ -10,6 +10,7 @@ type SyncService interface {
 	InputArticle(ctx context.Context, article domain.Article) error
 	InputUser(ctx context.Context, user domain.User) error
 	InputAny(ctx context.Context, idxName, docID, data string) error
+	Delete(ctx context.Context, index, docId string) error
 }
 
 type syncService struct {
@@ -20,6 +21,9 @@ type syncService struct {
 
 func (s *syncService) InputAny(ctx context.Context, index, docID, data string) error {
 	return s.anyRepo.Input(ctx, index, docID, data)
+}
+func (s *syncService) Delete(ctx context.Context, index, docId string) error {
+	return s.anyRepo.Delete(ctx, index, docId)
 }
 
 func (s *syncService) InputArticle(ctx context.Context, article domain.Article) error {

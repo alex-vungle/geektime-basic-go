@@ -25,6 +25,7 @@ var thirdPartySet = wire.NewSet(ioc.InitSrcDB,
 var interactiveSvcSet = wire.NewSet(dao2.NewGORMInteractiveDAO,
 	cache2.NewInteractiveRedisCache,
 	repository2.NewCachedInteractiveRepository,
+	events.NewInteractiveProducer,
 	service2.NewInteractiveService,
 )
 
