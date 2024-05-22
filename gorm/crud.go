@@ -27,7 +27,7 @@ func main() {
 		panic("failed to connect database")
 	}
 
-	//db = db.Debug()
+	// db = db.Debug()
 
 	// 迁移 schema
 	// 初始化你的表结构

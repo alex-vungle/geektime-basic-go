@@ -24,6 +24,11 @@ type MongoXTestSuite struct {
 }
 
 func (s *MongoXTestSuite) SetupSuite() {
+	defer func() {
+		if err := recover(); err != nil {
+
+		}
+	}()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -80,4 +85,60 @@ func (s *MongoXTestSuite) TestCRUD() {
 
 func TestMongoX(t *testing.T) {
 	suite.Run(t, new(MongoXTestSuite))
+}
+
+func TestDeferA(t *testing.T) {
+	// Jerry
+	DeferStruct()
+	// Jerry
+	DeferPointer()
+	// 12
+	DeferSlice()
+	// 234
+	DeferBasic()
+	// 只有这一种，输出的是 defer 之前的数据
+	// hello
+	DeferNoClosure()
+}
+
+func DeferStruct() {
+	u := User{Name: "Tom"}
+	defer func() {
+		println(u.Name)
+	}()
+	u.Name = "Jerry"
+}
+
+func DeferPointer() {
+	u := &User{Name: "Tom"}
+	defer func() {
+		println(u.Name)
+	}()
+	u.Name = "Jerry"
+}
+
+func DeferSlice() {
+	arr := []int{1, 2, 3}
+	defer func() {
+		println(arr[1])
+	}()
+	arr[1] = 12
+}
+
+func DeferBasic() {
+	a := 123
+	defer func() {
+		println(a)
+	}()
+	a = 234
+}
+
+func DeferNoClosure() {
+	a := "hello"
+	defer println(a)
+	a = "world"
+}
+
+type User struct {
+	Name string
 }
