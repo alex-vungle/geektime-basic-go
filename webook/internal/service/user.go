@@ -49,5 +49,7 @@ func (svc *UserService) Login(ctx context.Context, email string, password string
 }
 
 func (svc *UserService) Edit(ctx context.Context, u domain.User) error {
-	return nil
+
+	return svc.repo.Update(ctx, u)
+
 }

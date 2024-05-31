@@ -28,7 +28,8 @@ func (dao *UserDAO) Insert(ctx context.Context, u User) error {
 	u.Ctime = now
 	u.Utime = now
 	err := dao.db.WithContext(ctx).Create(&u).Error
-	if me, ok := err.(*mysql.MySQLError); ok {
+	var me *mysql.MySQLError
+	if errors.As(err, &me) {
 		const duplicateErr uint16 = 1062
 		if me.Number == duplicateErr {
 			// 用户冲突，邮箱冲突
@@ -42,6 +43,12 @@ func (dao *UserDAO) FindByEmail(ctx context.Context, email string) (User, error)
 	var u User
 	err := dao.db.WithContext(ctx).Where("email=?", email).First(&u).Error
 	return u, err
+}
+
+func (dao *UserDAO) Update(ctx context.Context, u User) error {
+	now := time.Now().UnixMilli()
+	u.Utime = now
+	return dao.db.WithContext(ctx).Model(&u).Where("id=?", u.Id).Updates(&u).Error
 }
 
 type User struct {

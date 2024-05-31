@@ -12,7 +12,7 @@ type LoginMiddlewareBuilder struct {
 func (m *LoginMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		path := ctx.Request.URL.Path
-		if path == "/users/signup" || path == "/users/login" {
+		if path == "/users/signup" || path == "/users/login" || path == "/users/edit" {
 			// 不需要登录校验
 			return
 		}

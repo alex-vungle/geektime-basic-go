@@ -133,6 +133,7 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 
 func (h *UserHandler) Edit(ctx *gin.Context) {
 	type Req struct {
+		Id       int64  `json:"id"`
 		Email    string `json:"email"`
 		Nickname string `json:"nickname"`
 		Birthday string `json:"birthday"`
@@ -140,6 +141,15 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 	}
 	var req Req
 	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	isEmail, err := h.emailRexExp.MatchString(req.Email)
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	if !isEmail {
+		ctx.String(http.StatusOK, "非法邮箱格式")
 		return
 	}
 	isBirthday, err := h.birthdayRexExp.MatchString(req.Birthday)
@@ -151,12 +161,18 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "非法的出生日期格式")
 		return
 	}
-	h.svc.Edit(ctx, domain.User{
+	err = h.svc.Edit(ctx, domain.User{
+		Id:       req.Id,
 		Email:    req.Email,
 		Nickname: req.Nickname,
 		Birthday: req.Birthday,
 		Bio:      req.Bio,
 	})
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	ctx.String(http.StatusOK, "修改成功")
 }
 
 func (h *UserHandler) Profile(ctx *gin.Context) {
