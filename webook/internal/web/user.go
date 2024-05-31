@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"gitee.com/geekbang/basic-go/webook/internal/domain"
 	"gitee.com/geekbang/basic-go/webook/internal/service"
 	regexp "github.com/dlclark/regexp2"
@@ -106,8 +107,8 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		return
 	}
 	u, err := h.svc.Login(ctx, req.Email, req.Password)
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		sess := sessions.Default(ctx)
 		sess.Set("userId", u.Id)
 		sess.Options(sessions.Options{
@@ -120,7 +121,7 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 			return
 		}
 		ctx.String(http.StatusOK, "登录成功")
-	case service.ErrInvalidUserOrPassword:
+	case errors.Is(err, service.ErrInvalidUserOrPassword):
 		ctx.String(http.StatusOK, "用户名或者密码不对")
 	default:
 		ctx.String(http.StatusOK, "系统错误")
