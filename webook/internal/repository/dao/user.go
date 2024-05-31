@@ -49,6 +49,13 @@ type User struct {
 	Email    string `gorm:"unique"`
 	Password string
 
+	// Nickname
+	Nickname string `gorm:"type:varchar(32)"`
+	// Birthday
+	Birthday string `gorm:"type:varchar(10)"`
+	// Bio
+	Bio string `gorm:"type:varchar(255)"`
+
 	// 时区，UTC 0 的毫秒数
 	// 创建时间
 	Ctime int64

@@ -14,11 +14,13 @@ const (
 	emailRegexPattern = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
 	// 和上面比起来，用 ` 看起来就比较清爽
 	passwordRegexPattern = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
+	birthdayRegexPattern = `^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$`
 )
 
 type UserHandler struct {
 	emailRexExp    *regexp.Regexp
 	passwordRexExp *regexp.Regexp
+	birthdayRexExp *regexp.Regexp
 	svc            *service.UserService
 }
 
@@ -26,6 +28,7 @@ func NewUserHandler(svc *service.UserService) *UserHandler {
 	return &UserHandler{
 		emailRexExp:    regexp.MustCompile(emailRegexPattern, regexp.None),
 		passwordRexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
+		birthdayRexExp: regexp.MustCompile(birthdayRegexPattern, regexp.None),
 		svc:            svc,
 	}
 }
@@ -129,7 +132,31 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 }
 
 func (h *UserHandler) Edit(ctx *gin.Context) {
-
+	type Req struct {
+		Email    string `json:"email"`
+		Nickname string `json:"nickname"`
+		Birthday string `json:"birthday"`
+		Bio      string `json:"bio"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	isBirthday, err := h.birthdayRexExp.MatchString(req.Birthday)
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	if !isBirthday {
+		ctx.String(http.StatusOK, "非法的出生日期格式")
+		return
+	}
+	h.svc.Edit(ctx, domain.User{
+		Email:    req.Email,
+		Nickname: req.Nickname,
+		Birthday: req.Birthday,
+		Bio:      req.Bio,
+	})
 }
 
 func (h *UserHandler) Profile(ctx *gin.Context) {

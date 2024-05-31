@@ -47,3 +47,7 @@ func (svc *UserService) Login(ctx context.Context, email string, password string
 	}
 	return u, nil
 }
+
+func (svc *UserService) Edit(ctx context.Context, u domain.User) error {
+	return nil
+}
