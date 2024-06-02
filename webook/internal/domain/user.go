@@ -3,16 +3,18 @@ package domain
 import "time"
 
 type User struct {
-	Id       int64
-	Email    string
-	Password string
+	Id       int64  `json:"Id"`
+	Email    string `json:"Email"`
+	Password string `json:"-"`
 
 	// Nickname
-	Nickname string
+	Nickname string `json:"Nickname"`
 	// Birthday
-	Birthday string
+	Birthday string `json:"Birthday"`
+	// Phone
+	Phone string `json:"Phone"`
 	// Bio
-	Bio string
+	Bio string `json:"AboutMe"`
 
 	// UTC 0 的时区
 	Ctime time.Time

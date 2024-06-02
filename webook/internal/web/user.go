@@ -137,6 +137,7 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 		Email    string `json:"email"`
 		Nickname string `json:"nickname"`
 		Birthday string `json:"birthday"`
+		Phone    string `json:"phone"`
 		Bio      string `json:"bio"`
 	}
 	var req Req
@@ -166,6 +167,7 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 		Email:    req.Email,
 		Nickname: req.Nickname,
 		Birthday: req.Birthday,
+		Phone:    req.Phone,
 		Bio:      req.Bio,
 	})
 	if err != nil {
@@ -176,5 +178,16 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 }
 
 func (h *UserHandler) Profile(ctx *gin.Context) {
-	ctx.String(http.StatusOK, "这是 profile")
+	session := sessions.Default(ctx)
+	userId := session.Get("userId")
+	if userId == nil {
+		ctx.String(http.StatusMethodNotAllowed, "用户未登录?")
+	}
+
+	// 调用service获取用户信息
+	u, err := h.svc.FindById(ctx, userId.(int64))
+	if err != nil {
+		ctx.String(http.StatusNotFound, "用户不存在")
+	}
+	ctx.JSON(http.StatusOK, u)
 }

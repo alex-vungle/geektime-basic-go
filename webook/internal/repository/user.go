@@ -40,6 +40,14 @@ func (repo *UserRepository) Update(ctx context.Context, u domain.User) error {
 	return repo.dao.Update(ctx, repo.toDao(u))
 }
 
+func (repo *UserRepository) FindById(ctx context.Context, id int64) (domain.User, error) {
+	u, err := repo.dao.FindById(ctx, id)
+	if err != nil {
+		return domain.User{}, err
+	}
+	return repo.toDomain(u), nil
+}
+
 func (repo *UserRepository) toDomain(u dao.User) domain.User {
 	return domain.User{
 		Id:       u.Id,
@@ -47,6 +55,7 @@ func (repo *UserRepository) toDomain(u dao.User) domain.User {
 		Password: u.Password,
 		Nickname: u.Nickname,
 		Birthday: u.Birthday,
+		Phone:    u.Phone,
 		Bio:      u.Bio,
 	}
 }
@@ -57,6 +66,7 @@ func (repo *UserRepository) toDao(u domain.User) dao.User {
 		Email:    u.Email,
 		Nickname: u.Nickname,
 		Birthday: u.Birthday,
+		Phone:    u.Phone,
 		Bio:      u.Bio,
 	}
 }
