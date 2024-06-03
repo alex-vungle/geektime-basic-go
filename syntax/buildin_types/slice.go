@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -56,6 +57,33 @@ func ShareSlice() {
 	fmt.Printf("s2: %v, len: %d, cap: %d \n", s2, len(s2), cap(s2))
 }
 
-//func Delete(idx int, vals []any) []any {
-//
-//}
+func shrink[T any](s []T) ([]T, bool) {
+	l, c := len(s), cap(s)
+	newCap := 0
+	if c <= 64 {
+		return s, false
+	}
+	if c > 2048 && c/l >= 4 {
+		factor := 0.625
+		newCap = int(float32(c) * float32(factor))
+	}
+	if c <= 2048 && c/l >= 2 {
+		newCap = c / 2
+	}
+
+	s1 := make([]T, l, newCap)
+	s1 = append(s1, s...)
+	return s1, true
+}
+
+func Delete[T any](idx int, vals []T) ([]T, error) {
+
+	if idx < 0 || idx >= len(vals) {
+		return []T{}, errors.New("index out of range")
+	}
+
+	ret := append(vals[:idx], vals[idx+1:]...)
+	ret, _ = shrink(ret)
+
+	return ret, nil
+}
