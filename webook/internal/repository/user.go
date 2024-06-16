@@ -87,6 +87,7 @@ func (repo *CachedUserRepository) toDomain(u dao.User) domain.User {
 		AboutMe:  u.AboutMe,
 		Nickname: u.Nickname,
 		Birthday: time.UnixMilli(u.Birthday),
+		Ctime:    time.UnixMilli(u.Ctime),
 	}
 }
 
