@@ -11,13 +11,13 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/wire v0.5.0
-	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.2.1
 	github.com/stretchr/testify v1.8.3
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.708
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.708
 	go.uber.org/mock v0.4.0
 	golang.org/x/crypto v0.9.0
+	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/sqlite v1.5.3
 	gorm.io/gorm v1.25.4
@@ -47,6 +47,7 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
