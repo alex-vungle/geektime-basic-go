@@ -4,6 +4,7 @@ import (
 	"gitee.com/geekbang/basic-go/webook/internal/domain"
 	"gitee.com/geekbang/basic-go/webook/internal/service"
 	ijwt "gitee.com/geekbang/basic-go/webook/internal/web/jwt"
+	"gitee.com/geekbang/basic-go/webook/pkg/ginx"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -61,56 +62,43 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 
 	// 手机验证码登录相关功能
 	ug.POST("/login_sms/code/send", h.SendSMSLoginCode)
-	ug.POST("/login_sms", h.LoginSMS)
+	ug.POST("/login_sms", ginx.WrapBody(h.LoginSMS))
 }
 
-func (h *UserHandler) LoginSMS(ctx *gin.Context) {
-	type Req struct {
-		Phone string `json:"phone"`
-		Code  string `json:"code"`
-	}
-	var req Req
-	if err := ctx.Bind(&req); err != nil {
-		return
-	}
+func (h *UserHandler) LoginSMS(ctx *gin.Context, req LoginSMSReq) (ginx.Result, error) {
 
 	ok, err := h.codeSvc.Verify(ctx, bizLogin, req.Phone, req.Code)
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
+		return ginx.Result{
 			Code: 5,
 			Msg:  "系统异常",
-			//Msg: err.Error(),
-		})
-		zap.L().Error("手机验证码验证失败",
-			// 在生产环境绝对不能打
-			// 开发环境你可以随便打
-			//zap.String("phone", req.Phone),
-			zap.Error(err))
-		return
+		}, err
 	}
 	if !ok {
-		ctx.JSON(http.StatusOK, Result{
+		return ginx.Result{
 			Code: 4,
 			Msg:  "验证码不对，请重新输入",
-		})
-		return
+		}, nil
 	}
 	u, err := h.svc.FindOrCreate(ctx, req.Phone)
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
+		return ginx.Result{
 			Code: 5,
 			Msg:  "系统错误",
-		})
-		return
+		}, err
 	}
 	err = h.SetLoginToken(ctx, u.Id)
 	if err != nil {
-		ctx.String(http.StatusOK, "系统错误")
-		return
+		return ginx.Result{
+			Code: 5,
+			Msg:  "系统错误",
+		}, err
 	}
-	ctx.JSON(http.StatusOK, Result{
+
+	return ginx.Result{
 		Msg: "登录成功",
-	})
+	}, nil
+
 }
 
 func (h *UserHandler) SendSMSLoginCode(ctx *gin.Context) {

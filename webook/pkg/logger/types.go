@@ -37,3 +37,10 @@ type LoggerV2 interface {
 	Warn(msg string, args ...any)
 	Error(msg string, args ...any)
 }
+
+func Error(err error) Field {
+	return Field{
+		Key: "error",
+		Val: err,
+	}
+}
