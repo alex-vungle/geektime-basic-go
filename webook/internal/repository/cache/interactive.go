@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 	"gitee.com/geekbang/basic-go/webook/internal/domain"
 	"github.com/redis/go-redis/v9"
@@ -14,6 +15,8 @@ var (
 	//go:embed lua/incr_cnt.lua
 	luaIncrCnt string
 )
+
+var RankingUpdateErr = errors.New("指定数据不存在")
 
 const fieldReadCnt = "read_cnt"
 const fieldLikeCnt = "like_cnt"

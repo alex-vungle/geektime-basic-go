@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"gitee.com/geekbang/basic-go/webook/internal/domain"
 	"gitee.com/geekbang/basic-go/webook/internal/repository/cache"
 	"gitee.com/geekbang/basic-go/webook/internal/repository/dao"
@@ -100,7 +101,18 @@ func (c *CachedInteractiveRepository) IncrLike(ctx context.Context, biz string, 
 	if err != nil {
 		return err
 	}
-	return c.cache.IncrLikeCntIfPresent(ctx, biz, id)
+	err = c.cache.IncrLikeCntIfPresent(ctx, biz, id)
+	if err != nil {
+		return err
+	}
+	err = c.cache.IncrLikeRankingIfPresent(ctx, biz, id)
+	if errors.Is(err, cache.RankingUpdateErr) {
+		val, err := c.dao.Get(ctx, biz, id)
+		if err != nil {
+			return err
+		}
+		return c.cache.SetLikeRankingScore(ctx, biz, id, val.LikeCnt)
+	}
 }
 
 func (c *CachedInteractiveRepository) DecrLike(ctx context.Context, biz string, id int64, uid int64) error {
