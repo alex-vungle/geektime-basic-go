@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	initViperV1()
+	//initViperV1()
 	initLogger()
 	app := InitWebServer()
 	for _, c := range app.consumers {
