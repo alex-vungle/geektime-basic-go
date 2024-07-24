@@ -26,6 +26,9 @@ type InteractiveCache interface {
 	IncrCollectCntIfPresent(ctx context.Context, biz string, id int64) error
 	Get(ctx context.Context, biz string, id int64) (domain.Interactive, error)
 	Set(ctx context.Context, biz string, bizId int64, res domain.Interactive) error
+	IncrLikeRankingIfPresent(ctx context.Context, biz string, bizId int64) error
+	SetLikeRankingScore(ctx context.Context, biz string, bizId int64, count int64) error
+	LikeTop(ctx context.Context, biz string) ([]domain.Interactive, error)
 }
 
 type InteractiveRedisCache struct {
@@ -36,6 +39,21 @@ func NewInteractiveRedisCache(client redis.Cmdable) InteractiveCache {
 	return &InteractiveRedisCache{
 		client: client,
 	}
+}
+
+func (i *InteractiveRedisCache) IncrLikeRankingIfPresent(ctx context.Context, biz string, bizId int64) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i *InteractiveRedisCache) SetLikeRankingScore(ctx context.Context, biz string, bizId int64, count int64) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i *InteractiveRedisCache) LikeTop(ctx context.Context, biz string) ([]domain.Interactive, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (i *InteractiveRedisCache) Set(ctx context.Context,
