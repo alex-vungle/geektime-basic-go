@@ -14,6 +14,10 @@ import (
 var (
 	//go:embed lua/incr_cnt.lua
 	luaIncrCnt string
+	//go:embed lua/ranking_cnt.lua
+	luaRankingCnt string
+	//go:embed lua/ranking_set.lua
+	luaRankingSet string
 )
 
 var RankingUpdateErr = errors.New("指定数据不存在")
@@ -30,7 +34,7 @@ type InteractiveCache interface {
 	Get(ctx context.Context, biz string, id int64) (domain.Interactive, error)
 	Set(ctx context.Context, biz string, bizId int64, res domain.Interactive) error
 	IncrLikeRankingIfPresent(ctx context.Context, biz string, bizId int64) error
-	SetLikeRankingScore(ctx context.Context, biz string, bizId int64, count int64) error
+	SetLikeRankingScore(ctx context.Context, biz string, bizId int64, score int64) error
 	LikeTop(ctx context.Context, biz string) ([]domain.Interactive, error)
 }
 
@@ -42,21 +46,6 @@ func NewInteractiveRedisCache(client redis.Cmdable) InteractiveCache {
 	return &InteractiveRedisCache{
 		client: client,
 	}
-}
-
-func (i *InteractiveRedisCache) IncrLikeRankingIfPresent(ctx context.Context, biz string, bizId int64) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i *InteractiveRedisCache) SetLikeRankingScore(ctx context.Context, biz string, bizId int64, count int64) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i *InteractiveRedisCache) LikeTop(ctx context.Context, biz string) ([]domain.Interactive, error) {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (i *InteractiveRedisCache) Set(ctx context.Context,
@@ -116,6 +105,23 @@ func (i *InteractiveRedisCache) IncrReadCntIfPresent(ctx context.Context,
 	return i.client.Eval(ctx, luaIncrCnt, []string{key}, fieldReadCnt, 1).Err()
 }
 
+func (i *InteractiveRedisCache) IncrLikeRankingIfPresent(ctx context.Context, biz string, bizId int64) error {
+	return i.client.Eval(ctx, luaRankingCnt, []string{i.rankingKey(biz)}, bizId).Err()
+}
+
+func (i *InteractiveRedisCache) SetLikeRankingScore(ctx context.Context, biz string, bizId int64, score int64) error {
+	return i.client.Eval(ctx, luaRankingSet, []string{i.rankingKey(biz)}, bizId, score).Err()
+}
+
+func (i *InteractiveRedisCache) LikeTop(ctx context.Context, biz string) ([]domain.Interactive, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (i *InteractiveRedisCache) key(biz string, bizId int64) string {
 	return fmt.Sprintf("interactive:%s:%d", biz, bizId)
+}
+
+func (i *InteractiveRedisCache) rankingKey(biz string) string {
+	return fmt.Sprintf("top_100_%s", biz)
 }

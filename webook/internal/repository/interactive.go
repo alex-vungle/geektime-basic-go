@@ -113,6 +113,7 @@ func (c *CachedInteractiveRepository) IncrLike(ctx context.Context, biz string, 
 		}
 		return c.cache.SetLikeRankingScore(ctx, biz, id, val.LikeCnt)
 	}
+	return err
 }
 
 func (c *CachedInteractiveRepository) DecrLike(ctx context.Context, biz string, id int64, uid int64) error {
