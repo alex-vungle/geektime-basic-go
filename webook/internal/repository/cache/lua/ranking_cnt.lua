@@ -1,4 +1,4 @@
-local zsetName = KEY[1]
+local zsetName = KEYS[1]
 local member2incr = ARGV[1]
 
 local exist = redis.call("EXISTS", zsetName)
