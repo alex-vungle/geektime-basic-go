@@ -17,6 +17,7 @@ type InteractiveRepository interface {
 	DecrLike(ctx context.Context, biz string, id int64, uid int64) error
 	AddCollectionItem(ctx context.Context, biz string, id int64, cid int64, uid int64) error
 	Get(ctx context.Context, biz string, id int64) (domain.Interactive, error)
+	TopLikes(ctxt context.Context, biz string) ([]domain.Interactive, error)
 	Liked(ctx context.Context, biz string, id int64, uid int64) (bool, error)
 	Collected(ctx context.Context, biz string, id int64, uid int64) (bool, error)
 }
@@ -25,6 +26,10 @@ type CachedInteractiveRepository struct {
 	dao   dao.InteractiveDAO
 	cache cache.InteractiveCache
 	l     logger.LoggerV1
+}
+
+func (c *CachedInteractiveRepository) TopLikes(ctx context.Context, biz string) ([]domain.Interactive, error) {
+	return c.cache.TopLikes(ctx, biz)
 }
 
 func NewCachedInteractiveRepository(dao dao.InteractiveDAO,

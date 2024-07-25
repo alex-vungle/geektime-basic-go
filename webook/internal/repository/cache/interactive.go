@@ -35,7 +35,7 @@ type InteractiveCache interface {
 	Set(ctx context.Context, biz string, bizId int64, res domain.Interactive) error
 	IncrLikeRankingIfPresent(ctx context.Context, biz string, bizId int64) error
 	SetLikeRankingScore(ctx context.Context, biz string, bizId int64, score int64) error
-	LikeTop(ctx context.Context, biz string) ([]domain.Interactive, error)
+	TopLikes(ctx context.Context, biz string) ([]domain.Interactive, error)
 }
 
 type InteractiveRedisCache struct {
@@ -120,9 +120,23 @@ func (i *InteractiveRedisCache) SetLikeRankingScore(ctx context.Context, biz str
 	return i.client.Eval(ctx, luaRankingSet, []string{i.rankingKey(biz)}, bizId, score).Err()
 }
 
-func (i *InteractiveRedisCache) LikeTop(ctx context.Context, biz string) ([]domain.Interactive, error) {
-	//TODO implement me
-	panic("implement me")
+func (i *InteractiveRedisCache) TopLikes(ctx context.Context, biz string) ([]domain.Interactive, error) {
+	var start int64 = 0
+	var end int64 = 99
+	res, err := i.client.ZRevRangeWithScores(ctx, i.rankingKey(biz), start, end).Result()
+	if err != nil {
+		return nil, err
+	}
+	interactives := make([]domain.Interactive, 0, 100)
+	for i := 0; i < len(res); i++ {
+		id, _ := strconv.ParseInt(res[i].Member.(string), 10, 64)
+		interactives = append(interactives, domain.Interactive{
+			Biz:     biz,
+			BizId:   id,
+			LikeCnt: int64(res[i].Score),
+		})
+	}
+	return interactives, nil
 }
 
 func (i *InteractiveRedisCache) key(biz string, bizId int64) string {

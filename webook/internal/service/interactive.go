@@ -13,10 +13,16 @@ type InteractiveService interface {
 	CancelLike(c context.Context, biz string, id int64, uid int64) error
 	Collect(ctx context.Context, biz string, bizId, cid, uid int64) error
 	Get(ctx context.Context, biz string, id int64, uid int64) (domain.Interactive, error)
+	TopLikes(ctx context.Context, biz string) ([]domain.Interactive, error)
 }
 
 type interactiveService struct {
 	repo repository.InteractiveRepository
+}
+
+func (i *interactiveService) TopLikes(ctx context.Context, biz string) ([]domain.Interactive, error) {
+	//TODO implement me
+	return i.repo.TopLikes(ctx, biz)
 }
 
 func (i *interactiveService) Get(ctx context.Context, biz string, id int64, uid int64) (domain.Interactive, error) {
