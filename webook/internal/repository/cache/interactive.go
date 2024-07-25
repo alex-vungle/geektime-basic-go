@@ -106,7 +106,14 @@ func (i *InteractiveRedisCache) IncrReadCntIfPresent(ctx context.Context,
 }
 
 func (i *InteractiveRedisCache) IncrLikeRankingIfPresent(ctx context.Context, biz string, bizId int64) error {
-	return i.client.Eval(ctx, luaRankingCnt, []string{i.rankingKey(biz)}, bizId).Err()
+	res, err := i.client.Eval(ctx, luaRankingCnt, []string{i.rankingKey(biz)}, bizId).Result()
+	if err != nil {
+		return err
+	}
+	if res.(int64) == 0 {
+		return RankingUpdateErr
+	}
+	return nil
 }
 
 func (i *InteractiveRedisCache) SetLikeRankingScore(ctx context.Context, biz string, bizId int64, score int64) error {
