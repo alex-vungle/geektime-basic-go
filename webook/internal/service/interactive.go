@@ -21,7 +21,6 @@ type interactiveService struct {
 }
 
 func (i *interactiveService) TopLikes(ctx context.Context, biz string) ([]domain.Interactive, error) {
-	//TODO implement me
 	return i.repo.TopLikes(ctx, biz)
 }
 

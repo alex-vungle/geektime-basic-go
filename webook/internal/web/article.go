@@ -39,6 +39,8 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 	g.POST("/publish", h.Publish)
 	g.POST("/withdraw", h.Withdraw)
 
+	g.GET("/trends", h.TopLikes)
+
 	// 创作者接口
 	g.GET("/detail/:id", h.Detail)
 	// 按照道理来说，这边就是 GET 方法
@@ -382,5 +384,27 @@ func (h *ArticleHandler) Collect(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, Result{
 		Msg: "OK",
+	})
+}
+
+func (h *ArticleHandler) TopLikes(ctx *gin.Context) {
+	interactives, err := h.intrSvc.TopLikes(ctx, "article")
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5, Msg: "系统错误",
+		})
+		h.l.Error("获取点赞最多文章失败",
+			logger.Error(err),
+		)
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Data: slice.Map[domain.Interactive, InteractiveVo](interactives, func(idx int, src domain.Interactive) InteractiveVo {
+			return InteractiveVo{
+				BizId:   src.BizId,
+				Biz:     src.Biz,
+				LikeCnt: src.LikeCnt,
+			}
+		}),
 	})
 }
