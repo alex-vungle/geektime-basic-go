@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	initViperV1()
+	initViper()
 	initLogger()
 	tpCancel := ioc.InitOTEL()
 	defer func() {

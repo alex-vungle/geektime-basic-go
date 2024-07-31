@@ -20,7 +20,7 @@ func NewInteractiveReadEventConsumer(repo repository.InteractiveRepository,
 	return &InteractiveReadEventConsumer{repo: repo, client: client, l: l}
 }
 
-func (i *InteractiveReadEventConsumer) Start() error {
+func (i *InteractiveReadEventConsumer) StartV1() error {
 	cg, err := sarama.NewConsumerGroupFromClient("interactive", i.client)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func (i *InteractiveReadEventConsumer) Start() error {
 	return err
 }
 
-func (i *InteractiveReadEventConsumer) StartV1() error {
+func (i *InteractiveReadEventConsumer) Start() error {
 	cg, err := sarama.NewConsumerGroupFromClient("interactive", i.client)
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func (i *InteractiveReadEventConsumer) StartV1() error {
 	go func() {
 		er := cg.Consume(context.Background(),
 			[]string{TopicReadEvent},
-			samarax.NewHandler[ReadEvent](i.l, i.Consume))
+			samarax.NewHandlerV1[ReadEvent]("article_read_consumer", i.l, i.Consume))
 		if er != nil {
 			i.l.Error("退出消费", logger.Error(er))
 		}
@@ -59,7 +59,7 @@ func (i *InteractiveReadEventConsumer) BatchConsume(msgs []*sarama.ConsumerMessa
 		bizs = append(bizs, "article")
 		bizIds = append(bizIds, evt.Aid)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 	return i.repo.BatchIncrReadCnt(ctx, bizs, bizIds)
 }
