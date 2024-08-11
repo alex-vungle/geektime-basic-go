@@ -26,9 +26,10 @@ func (dao *GORMJobDAO) Preempt(ctx context.Context) (Job, error) {
 	for {
 		var j Job
 		now := time.Now().UnixMilli()
+		ddl := now - (3 * time.Minute).Milliseconds()
 		// 作业：这里是缺少找到续约失败的 JOB 出来执行
-		err := db.Where("status = ? AND next_time <?",
-			jobStatusWaiting, now).
+		err := db.Where("(status = ? AND next_time <?) OR (status = ? AND utime < ?)",
+			jobStatusWaiting, now, jobStatusRunning, ddl).
 			First(&j).Error
 		if err != nil {
 			return j, err
