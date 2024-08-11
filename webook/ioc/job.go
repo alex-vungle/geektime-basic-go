@@ -6,12 +6,13 @@ import (
 	"gitee.com/geekbang/basic-go/webook/pkg/logger"
 	rlock "github.com/gotomicro/redis-lock"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron/v3"
 	"time"
 )
 
-func InitRankingJob(svc service.RankingService, client *rlock.Client, l logger.LoggerV1) *job.RankingJob {
-	return job.NewRankingJob(svc, l, client, time.Second*30)
+func InitRankingJob(svc service.RankingService, client *rlock.Client, l logger.LoggerV1, redisClient redis.Cmdable) *job.RankingJob {
+	return job.NewRankingJob(svc, l, client, time.Second*30, redisClient)
 }
 
 func InitJobs(l logger.LoggerV1, rjob *job.RankingJob) *cron.Cron {
