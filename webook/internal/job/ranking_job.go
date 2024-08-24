@@ -44,7 +44,7 @@ func (r *RankingJob) Name() string {
 // go fun() { r.Run()}
 
 func (r *RankingJob) Run() error {
-	r.localLock.Lock()
+	/*r.localLock.Lock()
 	lock := r.lock
 	if lock == nil {
 		// 抢分布式锁
@@ -80,7 +80,8 @@ func (r *RankingJob) Run() error {
 	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
 	defer cancel()
 
-	return r.svc.TopN(ctx)
+	return r.svc.TopN(ctx)*/
+	return nil
 }
 
 func (r *RankingJob) Close() error {

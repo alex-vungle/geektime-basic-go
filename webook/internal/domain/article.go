@@ -10,6 +10,8 @@ type Article struct {
 	Status  ArticleStatus
 	Ctime   time.Time
 	Utime   time.Time
+	// 引用domain package下新定义的Interactive结构体
+	Intr Interactive
 }
 
 func (a Article) Abstract() string {

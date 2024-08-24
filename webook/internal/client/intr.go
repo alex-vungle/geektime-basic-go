@@ -45,7 +45,7 @@ func (i *InteractiveClient) selectClient() intrv1.InteractiveServiceClient {
 	if num < i.threshold.Load() {
 		return i.remote
 	}
-	return i.local
+	return i.remote
 }
 
 func (i *InteractiveClient) UpdateThreshold(val int32) {
