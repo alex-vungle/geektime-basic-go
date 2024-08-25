@@ -177,11 +177,15 @@ func (s *Scheduler[T]) StartFullValidation(c *gin.Context) (ginx.Result, error) 
 	go func() {
 		// 先取消上一次的
 		cancel()
+		start := time.Now()
 		err := v.Validate(ctx)
+		elapsed := time.Since(start)
+		s.l.Info(fmt.Sprintf("执行时间: %s\n", elapsed))
 		if err != nil {
 			s.l.Warn("退出全量校验", logger.Error(err))
 		}
 	}()
+
 	return ginx.Result{
 		Msg: "OK",
 	}, nil

@@ -48,7 +48,7 @@ func (v *Validator[T]) Validate(ctx context.Context) error {
 
 	var eg errgroup.Group
 	eg.Go(func() error {
-		return v.validateBaseToTarget(ctx)
+		return v.validateBaseToTargetV1(ctx)
 	})
 	eg.Go(func() error {
 		return v.validateTargetToBase(ctx)
@@ -105,6 +105,66 @@ func (v *Validator[T]) validateBaseToTarget(ctx context.Context) error {
 		}
 		offset++
 	}
+}
+
+// 批量处理实现
+func (v *Validator[T]) validateBaseToTargetV1(ctx context.Context) error {
+	offset := 0
+	const limit = 100
+	for {
+		var srcs []T
+		dbCtx, cancel := context.WithTimeout(ctx, time.Second)
+		//limit由调用者传入
+		err := v.base.WithContext(dbCtx).
+			Order("id").
+			Where("utime >= ?", v.utime).
+			Offset(offset).Limit(limit).Find(&srcs).Error
+		cancel()
+		switch err {
+		case context.Canceled, context.DeadlineExceeded:
+			return err
+		case nil:
+			if len(srcs) == 0 {
+				return nil
+			}
+			err = v.diff(srcs)
+			if err != nil {
+				return err
+			}
+		default:
+			v.l.Error("src => dst 查询源表失败", logger.Error(err))
+		}
+		if len(srcs) < limit {
+			return nil
+		}
+		offset += len(srcs)
+	}
+}
+
+func (v *Validator[T]) diff(srcs []T) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	ids := slice.Map(srcs, func(idx int, src T) int64 {
+		return src.ID()
+	})
+	var dsts []T
+	err := v.target.WithContext(ctx).Where("id IN ?", ids).
+		Find(&dsts).Error
+	if err != nil {
+		return err
+	}
+	dstMap := v.toMap(dsts)
+	for _, src := range srcs {
+		dst, ok := dstMap[src.ID()]
+		if !ok {
+			v.notify(src.ID(), events.InconsistentEventTypeTargetMissing)
+			continue
+		}
+		if !src.CompareTo(dst) {
+			v.notify(src.ID(), events.InconsistentEventTypeNEQ)
+		}
+	}
+	return nil
 }
 
 func (v *Validator[T]) Full() *Validator[T] {
@@ -226,4 +286,12 @@ func (v *Validator[T]) notify(id int64, typ string) {
 			logger.String("type", typ),
 			logger.Int64("id", id))
 	}
+}
+
+func (v *Validator[T]) toMap(data []T) map[int64]T {
+	res := make(map[int64]T, len(data))
+	for _, val := range data {
+		res[val.ID()] = val
+	}
+	return res
 }
