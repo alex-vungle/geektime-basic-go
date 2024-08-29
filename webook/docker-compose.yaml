@@ -20,11 +20,13 @@ services:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:
       - 9090:9090
+
   zipkin:
     #    用的是不支持 Kafka 之类的简化版本
     image: openzipkin/zipkin-slim:2.24
     ports:
       - '9411:9411'
+
   redis:
     image: "bitnami/redis:latest"
     restart: always
@@ -32,6 +34,7 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - '6379:6379'
+
   mongo:
     image: mongo:6.0
     restart: always
@@ -48,10 +51,12 @@ services:
       - ALLOW_NONE_AUTHENTICATION=yes
     ports:
       - "12379:2379"
+
   grafana:
     image: grafana/grafana-enterprise:10.2.0
     ports:
       - 3000:3000
+
   kafka:
     image: 'bitnami/kafka:3.6.0'
     ports:
@@ -67,3 +72,33 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+  consul:
+    image: bitnami/consul:latest
+    container_name: consul-server
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+    ports:
+      - "8500:8500"  # Expose the Consul HTTP API
+      - "8600:8600/udp"  # Expose the DNS interface
+      - "8600:8600/tcp"
+    volumes:
+      - consul_data:/bitnami/consul
+    command:
+      - "consul"
+      - "agent"
+      - "-server"
+      - "-ui"
+      - "-bootstrap-expect=1"
+      - "-client=0.0.0.0"
+      - "-data-dir=/bitnami/consul/data"
+    networks:
+      - consul_network
+
+volumes:
+  consul_data:
+    driver: local
+
+networks:
+  consul_network:
+    driver: bridge
