@@ -46,35 +46,42 @@ type Picker struct {
 }
 
 func (p *Picker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
-	p.lock.Lock()
-	defer p.lock.Unlock()
 	if len(p.conns) == 0 {
 		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable
 	}
-	// 总权重
-	var total int
-	var maxCC *weightConn
+	var totalWeight int
+	var res *weightConn
+
 	for _, c := range p.conns {
-		total += c.weight
-		c.currentWeight = c.currentWeight + c.weight
-		if maxCC == nil || maxCC.currentWeight < c.currentWeight {
-			maxCC = c
+		c.mutex.Lock()
+		totalWeight = totalWeight + c.efficientWeight
+		c.currentWeight = c.currentWeight + c.efficientWeight
+		if res == nil || res.currentWeight < c.currentWeight {
+			res = c
 		}
+		c.mutex.Unlock()
 	}
-
-	maxCC.currentWeight = maxCC.currentWeight - total
-
+	res.mutex.Lock()
+	res.currentWeight = res.currentWeight - totalWeight
+	res.mutex.Unlock()
 	return balancer.PickResult{
-		SubConn: maxCC.SubConn,
+		SubConn: res.SubConn,
 		Done: func(info balancer.DoneInfo) {
-			// 要在这里进一步调整weight/currentWeight
-			// failover 要在这里做文章
-			// 根据调用结果的具体错误信息进行容错
-			// 1. 如果要是触发了限流了，
-			// 1.1 你可以考虑直接挪走这个节点，后面再挪回来
-			// 1.2 你可以考虑直接将 weight/currentWeight 调整到极低
-			// 2. 触发了熔断呢？
-			// 3. 降级呢？
+			res.mutex.Lock()
+			defer res.mutex.Unlock()
+
+			if info.Err != nil && res.efficientWeight == 1 {
+				return
+			}
+
+			if info.Err == nil && res.efficientWeight >= 400 {
+				return
+			}
+			if info.Err != nil {
+				res.efficientWeight--
+			} else {
+				res.efficientWeight++
+			}
 		},
 	}, nil
 
@@ -82,8 +89,10 @@ func (p *Picker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 
 type weightConn struct {
 	balancer.SubConn
-	weight        int
-	currentWeight int
+	mutex           sync.Mutex
+	weight          int
+	currentWeight   int
+	efficientWeight int
 
 	// 可以用来标记不可用
 	available bool
