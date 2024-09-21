@@ -1,8 +1,12 @@
 package wrr
 
 import (
+	"context"
+	"errors"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"sync"
 )
 
@@ -46,45 +50,73 @@ type Picker struct {
 }
 
 func (p *Picker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
-	p.lock.Lock()
-	defer p.lock.Unlock()
 	if len(p.conns) == 0 {
 		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable
 	}
-	// 总权重
-	var total int
-	var maxCC *weightConn
+	var totalWeight int
+	var res *weightConn
+
 	for _, c := range p.conns {
-		total += c.weight
-		c.currentWeight = c.currentWeight + c.weight
-		if maxCC == nil || maxCC.currentWeight < c.currentWeight {
-			maxCC = c
+		c.mutex.Lock()
+		totalWeight = totalWeight + c.efficientWeight
+		c.currentWeight = c.currentWeight + c.efficientWeight
+		if res == nil || res.currentWeight < c.currentWeight {
+			res = c
 		}
+		c.mutex.Unlock()
 	}
-
-	maxCC.currentWeight = maxCC.currentWeight - total
-
+	res.mutex.Lock()
+	res.currentWeight = res.currentWeight - totalWeight
+	res.mutex.Unlock()
 	return balancer.PickResult{
-		SubConn: maxCC.SubConn,
+		SubConn: res.SubConn,
 		Done: func(info balancer.DoneInfo) {
-			// 要在这里进一步调整weight/currentWeight
-			// failover 要在这里做文章
-			// 根据调用结果的具体错误信息进行容错
-			// 1. 如果要是触发了限流了，
-			// 1.1 你可以考虑直接挪走这个节点，后面再挪回来
-			// 1.2 你可以考虑直接将 weight/currentWeight 调整到极低
-			// 2. 触发了熔断呢？
-			// 3. 降级呢？
+			res.mutex.Lock()
+			defer res.mutex.Unlock()
+			if info.Err != nil && res.efficientWeight == 0 {
+				return
+			}
+			switch {
+			case info.Err == nil:
+				// 假设权重最大为400
+				if res.efficientWeight == 400 {
+					return
+				}
+				// 增加权重
+				res.efficientWeight++
+			case errors.Is(info.Err, context.DeadlineExceeded):
+				// 动态调整超时
+				res.efficientWeight = res.efficientWeight - 10
+			default:
+				// 服务端错误
+				code := status.Code(info.Err)
+				switch code {
+				case codes.Unavailable:
+					res.efficientWeight = 1
+				case codes.ResourceExhausted:
+					res.efficientWeight = res.efficientWeight / 2
+				case codes.Aborted:
+					res.efficientWeight = res.efficientWeight / 2
+				default:
+					if res.efficientWeight == 1 {
+						return
+					}
+					res.efficientWeight--
+				}
+			}
 		},
 	}, nil
-
 }
 
 type weightConn struct {
 	balancer.SubConn
-	weight        int
-	currentWeight int
 
-	// 可以用来标记不可用
+	mutex sync.Mutex
+
+	weight          int
+	currentWeight   int
+	efficientWeight int
+
+	// 可以用来标记不可用（比如说熔断了）
 	available bool
 }
