@@ -2,6 +2,7 @@ package wechat
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"gitee.com/geekbang/basic-go/webook/payment/domain"
@@ -22,7 +23,9 @@ type NativePaymentService struct {
 	// 支付通知回调 URL
 	notifyURL string
 	// 自己的支付记录
-	repo repository.PaymentRepository
+	repo        repository.PaymentRepository
+	repov1      repository.PaymentGORMRepository
+	messageRepo repository.LocalMsgRepository
 
 	svc      *native.NativeApiService
 	producer events.Producer
@@ -134,5 +137,56 @@ func (n *NativePaymentService) updateByTxn(ctx context.Context, txn *payments.Tr
 		n.l.Error("发送支付事件失败", logger.Error(err),
 			logger.String("biz_trade_no", *txn.OutTradeNo))
 	}
+	return nil
+}
+
+// updateByTxnV1
+func (n *NativePaymentService) updateByTxnV1(ctx context.Context, txn *payments.Transaction) error {
+	status, ok := n.nativeCBTypeToStatus[*txn.TradeState]
+	if !ok {
+		return fmt.Errorf("%w, Wechat Status is %s", errUnknownTransactionState, *txn.TradeState)
+	}
+	// Update the payment status in local database.
+	evt := events.PaymentEvent{
+		BizTradeNO: *txn.OutTradeNo,
+		Status:     status.AsUint8(),
+	}
+	var msgId int64
+
+	err := n.repov1.Transaction(ctx, func(pmt *repository.PaymentGORMRepository, msg *repository.LocalMsgGORMRepository) error {
+		err1 := pmt.UpdatePayment(ctx, domain.Payment{
+			TxnID:      *txn.TransactionId,
+			BizTradeNO: *txn.OutTradeNo,
+			Status:     status,
+		})
+		if err1 != nil {
+			return err1
+		}
+		evtData, err1 := json.Marshal(evt)
+		if err1 != nil {
+			return err1
+		}
+		// 插入一条数据来记录将要发一条消息到Kafka
+		msgId, err1 = msg.AddMsg(ctx, string(evtData))
+		return err1
+	})
+	if err != nil {
+		return err
+	}
+
+	err1 := n.producer.ProducePaymentEvent(ctx, evt)
+	if err1 != nil {
+		n.l.Error("Failed in sending payment event", logger.Error(err1),
+			logger.String("biz_trade_no", *txn.OutTradeNo))
+		return nil
+	}
+
+	err1 = n.messageRepo.MarkSuccess(ctx, msgId)
+	if err1 != nil {
+		// 消息发出去了，但是将消息标记为成功的操作失败了(部分失败)
+		n.l.Error("Failed to marking the message to success status", logger.Error(err1),
+			logger.String("biz_trade_no", *txn.OutTradeNo))
+	}
+
 	return nil
 }

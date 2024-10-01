@@ -31,11 +31,11 @@ type AccountActivity struct {
 	Id  int64 `gorm:"primaryKey,autoIncrement"`
 	Uid int64
 
-	Biz   string `gorm:"index:biz_type_id"`
-	BizId int64  `gorm:"index:biz_type_id"`
+	Biz   string `gorm:"uniqueIndex:biz_type_id"`
+	BizId int64  `gorm:"uniqueIndex:biz_type_id"`
 
-	Account     int64 `gorm:"index:account_type"`
-	AccountType uint8 `gorm:"index:account_type"`
+	Account     int64 `gorm:"index:account_type;uniqueIndex:biz_type_id"`
+	AccountType uint8 `gorm:"index:account_type;uniqueIndex:biz_type_id"`
 
 	// TYPE 入账还是出账
 	Amount   int64
