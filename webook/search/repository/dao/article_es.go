@@ -28,20 +28,30 @@ func NewArticleElasticDAO(client *elastic.Client) ArticleDAO {
 	return &ArticleElasticDAO{client: client}
 }
 
-func (h *ArticleElasticDAO) Search(ctx context.Context, artIds []int64, keywords []string) ([]Article, error) {
+func (h *ArticleElasticDAO) Search(ctx context.Context, req SearchReq, keywords []string) ([]Article, error) {
 	queryString := strings.Join(keywords, " ")
 	// 2=> published
 	status := elastic.NewTermQuery("status", 2)
 
-	title := elastic.NewMatchQuery("title", queryString)
-	content := elastic.NewMatchQuery("content", queryString)
-	tag := elastic.NewTermsQuery("id", slice.Map(artIds, func(idx int, src int64) any {
+	title := elastic.NewMatchQuery("title", queryString).Boost(4)
+	content := elastic.NewMatchQuery("content", queryString).Boost(4)
+	tag := elastic.NewTermsQuery("id", slice.Map(req.TagIds, func(idx int, src int64) any {
 		return src
-	})).Boost(2)
-
-	or := elastic.NewBoolQuery().Should(title, content, tag)
+	})...).Boost(2)
+	collect := elastic.NewTermsQuery("id", slice.Map(req.CollectIds, func(idx int, src int64) any {
+		return src
+	})...).Boost(4)
+	like := elastic.NewTermsQuery("id", slice.Map(req.LikeIds, func(idx int, src int64) any {
+		return src
+	})...).Boost(2)
+	or := elastic.NewBoolQuery().Should(title, content, tag, collect, like)
 	query := elastic.NewBoolQuery().Must(status, or)
-	resp, err := h.client.Search(ArticleIndexName).Query(query).Do(ctx)
+	sort := elastic.NewFieldSort("id").Desc()
+	scoreSort := elastic.NewFieldSort("_score").Desc()
+	resp, err := h.client.Search(ArticleIndexName).
+		SortBy(scoreSort, sort).
+		Query(query).
+		Do(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -19,9 +19,10 @@ func InitESClient() *elastic.Client {
 	if err != nil {
 		panic(fmt.Errorf("读取 ES 配置失败 %w", err))
 	}
-	const timeout = 100 * time.Second
+	const timeout = 10 * time.Second
 	opts := []elastic.ClientOptionFunc{
 		elastic.SetURL(cfg.Url),
+		elastic.SetSniff(cfg.Sniff),
 		elastic.SetHealthcheckTimeoutStartup(timeout),
 	}
 	client, err := elastic.NewClient(opts...)

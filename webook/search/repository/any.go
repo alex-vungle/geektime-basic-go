@@ -7,6 +7,7 @@ import (
 
 type AnyRepository interface {
 	Input(ctx context.Context, index string, docID string, data string) error
+	Delete(ctx context.Context, index, docID string) error
 }
 
 type anyRepository struct {
@@ -19,4 +20,8 @@ func NewAnyRepository(dao dao.AnyDAO) AnyRepository {
 
 func (repo *anyRepository) Input(ctx context.Context, index string, docID string, data string) error {
 	return repo.dao.Input(ctx, index, docID, data)
+}
+
+func (repo *anyRepository) Delete(ctx context.Context, index string, docID string) error {
+	return repo.dao.Delete(ctx, index, docID)
 }

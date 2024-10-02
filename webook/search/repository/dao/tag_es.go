@@ -3,6 +3,7 @@ package dao
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/olivere/elastic/v7"
 )
 
@@ -21,6 +22,8 @@ func (t *TagESDAO) Search(ctx context.Context, uid int64, biz string, keywords [
 		elastic.NewTermQuery("biz", biz),
 		elastic.NewTermsQueryFromStrings("tags", keywords...),
 	)
+	v, err := query.Source()
+	fmt.Println(v)
 	resp, err := t.client.Search(TagIndexName).Query(query).Do(ctx)
 	if err != nil {
 		return nil, err
@@ -38,8 +41,8 @@ func (t *TagESDAO) Search(ctx context.Context, uid int64, biz string, keywords [
 }
 
 type BizTags struct {
-	Uid   int64    `json:"uid"`
-	Biz   string   `json:"biz"`
-	BizId int64    `json:"biz_id"`
-	Tags  []string `json:"tags"`
+	Uid   int64  `json:"uid"`
+	Biz   string `json:"biz"`
+	BizId int64  `json:"biz_id"`
+	Tags  string `json:"tags"`
 }

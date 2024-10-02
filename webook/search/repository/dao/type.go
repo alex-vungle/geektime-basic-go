@@ -12,7 +12,7 @@ type UserDAO interface {
 type ArticleDAO interface {
 	InputArticle(ctx context.Context, article Article) error
 	// Search artIds 命中了索引的 article id
-	Search(ctx context.Context, artIds []int64, keywords []string) ([]Article, error)
+	Search(ctx context.Context, req SearchReq, keywords []string) ([]Article, error)
 }
 
 type TagDAO interface {
@@ -21,4 +21,19 @@ type TagDAO interface {
 
 type AnyDAO interface {
 	Input(ctx context.Context, index, docID, data string) error
+	Delete(ctx context.Context, index string, docID string) error
+}
+
+type LikeDAO interface {
+	Search(ctx context.Context, uid int64, biz string) ([]int64, error)
+}
+
+type CollectDAO interface {
+	Search(ctx context.Context, uid int64, biz string) ([]int64, error)
+}
+
+type SearchReq struct {
+	LikeIds    []int64
+	TagIds     []int64
+	CollectIds []int64
 }
