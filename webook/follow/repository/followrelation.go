@@ -88,6 +88,7 @@ func (d *CachedRelationRepository) AddFollowRelation(ctx context.Context, c doma
 	if err != nil {
 		return err
 	}
+	return err
 	// 更新缓存里面的关注了多少人，以及有多少粉丝的计数， +1
 	// return d.cache.Follow(ctx, c.Follower, c.Followee)
 }
